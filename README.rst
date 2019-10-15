@@ -64,6 +64,41 @@ Then run foreman-yml like this to dump configuration:
 
     foreman-yml dump /path/to/config.yml > foreman_dump.yml
 
+To filter on specific object, provide it as 3rd argument.
+List of supported objects:
+
+- architecture
+- auth-source-ldap
+- domain
+- environment
+- hosts
+- hostgroup
+- model
+- media
+- os
+- partition-table
+- provisioning-template
+- roles
+- settings
+- smart-proxy
+- subnet
+- users
+- usergroups
+
+::
+
+    foreman-yml dump /path/to/config.yml settings > foreman_dump.yml
+
+So you can easily generate per object files:
+
+::
+
+    for obj in domain subnet; do
+      foreman-yml dump /path/to/config.yml $obj > foreman_dump_$obj.yml
+    done
+
+
+
 Import settings into foreman
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -73,7 +108,7 @@ tries to import settings provided by yaml-file.
 ::
 
     foreman-yml /path/to/config.yml
-    foreman-yml dump /path/to/config.yml
+    foreman-yml import /path/to/config.yml
 
 The following config sections are supported:
 

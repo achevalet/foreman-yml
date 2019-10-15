@@ -10,8 +10,8 @@ import os
 import log
 
 
-def fm_dump(fm):
-    fm.dump()
+def fm_dump(fm, object=None):
+    fm.dump(object)
 
 
 def fm_cleanup(fm):
@@ -107,7 +107,7 @@ def main():
 
     try:
         config_file = open(config_file, 'r')
-        config = yaml.load(config_file)
+        config = yaml.load(config_file, Loader=yaml.FullLoader)
         config_file.close()
     except:
         log.log(log.LOG_ERROR, "Failed to load/parse config")
@@ -121,7 +121,11 @@ def main():
     if (function == "dump"):
         fm = ForemanDump(config)
         fm.connect()
-        fm_dump(fm)
+        try:
+            object = sys.argv[3]
+        except IndexError:
+            object = None
+        fm_dump(fm, object)
 
     if (function == "cleanup"):
         fm = ForemanCleanup(config)

@@ -44,26 +44,43 @@ class ForemanDump(ForemanBase):
 
 
     # dump functionality
-    def dump(self):
+    def dump(self, object=None):
         dumpdata = {}
-        dumpdata['hosts']       = self.dump_hosts()
-        dumpdata['hostgroup']   = self.dump_hostgroups()
-        dumpdata['architecture'] = self.dump_arch()
-        dumpdata['environment']  = self.dump_env()
-        dumpdata['os']           = self.dump_os()
-        dumpdata['model']        = self.dump_model()
-        dumpdata['media']        = self.dump_media()
-        dumpdata['domain']       = self.dump_domain()
-        dumpdata['settings']     = self.dump_settings()
-        dumpdata['subnet']       = self.dump_subnet()
-        dumpdata['smart-proxy']  = self.dump_smartproxy()
-        dumpdata['partition-table']  = self.dump_ptable()
-        dumpdata['provisioning-template']  = self.dump_provisioningtpl()
-        dumpdata['users']        = self.dump_users()
-        dumpdata['users']        = self.dump_users()
-        dumpdata['auth-source-ldap'] = self.dump_ldaps()
-        dumpdata['usergroups'] = self.dump_usergroups()
-        dumpdata['roles'] = self.dump_roles()
+        all_objects = []
+        # define supported objects (restrict dump functions name)
+        supported_objects = [
+            'architecture',
+            'auth-source-ldap',
+            'domain',
+            'environment',
+            'hosts',
+            'hostgroup',
+            'model',
+            'media',
+            'os',
+            'partition-table',
+            'provisioning-template',
+            'roles',
+            'settings',
+            'smart-proxy',
+            'subnet',
+            'users',
+            'usergroups',
+        ]
+
+        # define target objects
+        if object is not None:
+            if object not in supported_objects:
+                log.log(log.LOG_ERROR, "Object must be one of %s" %supported_objects)
+                sys.exit(1)
+            all_objects = [object]
+        else:
+            all_objects = supported_objects
+
+        # dump objects
+        for object in all_objects:
+            dump_func = getattr(self, 'dump_%s' %object.replace('-', '_'))
+            dumpdata[object] = dump_func()
 
         # print the result
         fmyml = { 'foreman': dumpdata }
@@ -126,7 +143,7 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_hostgroups(self):
+    def dump_hostgroup(self):
         ret = []
         all_groups = self.fm.hostgroups.index(per_page=99999)['results']
         for group in all_groups:
@@ -163,7 +180,7 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_arch(self):
+    def dump_architecture(self):
         ret = []
         all_archs = self.fm.architectures.index(per_page=99999)['results']
         for arch in all_archs:
@@ -171,7 +188,7 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_env(self):
+    def dump_environment(self):
         ret = []
         all_envs = self.fm.environments.index(per_page=99999)['results']
         for env in all_envs:
@@ -294,7 +311,7 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_smartproxy(self):
+    def dump_smart_proxy(self):
         ret = []
         all_proxys = self.fm.smart_proxies.index(per_page=99999)['results']
         for proxy in all_proxys:
@@ -376,7 +393,7 @@ class ForemanDump(ForemanBase):
 
 
 
-    def dump_ptable(self):
+    def dump_partition_table(self):
         ret = []
         all_ptables = self.fm.ptables.index(per_page=99999)['results']
         for ptable in all_ptables:
@@ -412,7 +429,7 @@ class ForemanDump(ForemanBase):
 
 
 
-    def dump_provisioningtpl(self):
+    def dump_provisioning_template(self):
         ret = []
         wanted_keys = [
             "snippet",
@@ -469,7 +486,7 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_ldaps(self):
+    def dump_auth_source_ldap(self):
         ret = []
         wanted_keys = [
             "name",

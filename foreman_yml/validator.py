@@ -213,6 +213,7 @@ class Validator:
             Optional('onthefly-register'):              Any(bool, int, None),
             Optional('usergroup-sync'):                 Any(bool, int, None),
             Optional('tls'):                            Any(bool, int, None),
+            Optional('use-netgroups'):                  Any(bool, int, None),
             Optional('groups-base'):                    Any(str, None),
             Optional('ldap-filter'):                    Any(str, None),
             Optional('server-type'):                    Any('free_ipa',

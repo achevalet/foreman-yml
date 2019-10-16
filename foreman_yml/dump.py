@@ -503,6 +503,9 @@ class ForemanDump(ForemanBase):
             "attr-mail",
             "attr-photo",
             "mail",
+            "server-type",
+            "account",
+            "use-netgroups",
             "timezone"
         ]
         all_ldaps = self.fm.auth_source_ldaps.index(per_page=99999)['results']

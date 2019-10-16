@@ -188,12 +188,21 @@ class ForemanDump(ForemanBase):
                     grp_tpl['partition'] = value
                 elif (setting == "subnet_name" ):
                     grp_tpl['subnet'] = value
+                elif (setting == "title" ):
+                    grp_tpl['title'] = value
+                elif (setting == "parent_name" ):
+                    grp_tpl['parent'] = value
             try:
                 hobj = self.fm.hostgroups.show(group['id'])
                 if (len(hobj['parameters'])>0):
                     grp_tpl['parameters'] = {}
                     for param in hobj['parameters']:
                         grp_tpl['parameters'][param['name']] = param['value']
+                if (len(hobj['puppetclasses'])>0):
+                    grp_tpl['puppetclasses'] = []
+                    for pclass in hobj['puppetclasses']:
+                        grp_tpl['puppetclasses'].append(pclass['name'])
+
             except:
                 pass
             ret.append(grp_tpl)

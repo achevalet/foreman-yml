@@ -127,11 +127,31 @@ class ForemanDump(ForemanBase):
                     host_tpl['partition'] = value
                 elif (setting == "model_name"):
                     host_tpl['model'] = value
-                elif (setting == "hostgroup_name"):
+                elif (setting == "hostgroup_title"):
                     host_tpl['hostgroup'] = value
+                elif (setting == "ip"):
+                    host_tpl['ip'] = value
+                elif (setting == "mac"):
+                    host_tpl['mac'] = value
+                elif (setting == "subnet_name"):
+                    host_tpl['subnet'] = value
+                elif (setting == "owner_name"):
+                    host_tpl['owner'] = value
+                elif (setting == "owner_type"):
+                    host_tpl['owner-type'] = value
+                elif (setting == "enabled"):
+                    host_tpl['enabled'] = value
+                elif (setting == "managed"):
+                    host_tpl['enabled'] = value
+                elif (setting == "compute_resource_name"):
+                    host_tpl['compute-resource'] = value
+                elif (setting == "puppet_proxy_name"):
+                    host_tpl['puppet-proxy'] = value
+                elif (setting == "puppet_ca_proxy_name"):
+                    host_tpl['puppet-ca-proxy'] = value
             # host params
             try:
-                hobj = self.fm.hostgroups.show(group['id'])
+                hobj = self.fm.hosts.show(host['id'])
                 if (len(hobj['parameters'])>0):
                     host_tpl['parameters'] = {}
                     for param in hobj['parameters']:

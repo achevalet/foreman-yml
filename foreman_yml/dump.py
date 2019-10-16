@@ -286,7 +286,6 @@ class ForemanDump(ForemanBase):
 
 
     def dump_domain(self):
-        # TODO: dns-proxy
         ret = []
         all_doms = self.fm.domains.index(per_page=99999)['results']
         for dom in all_doms:
@@ -299,8 +298,8 @@ class ForemanDump(ForemanBase):
                     dom_tpl['name'] = value
                 if (setting == "fullname"):
                     dom_tpl['fullname'] = value
-                if (setting == "fullname"):
-                    dom_tpl['fullname'] = value
+                if (setting == "dns"):
+                    dom_tpl['dns-proxy'] = value['name']
             # params
             domobj = self.fm.domains.show(dom['id'])
             if (len(domobj['parameters'])>0):

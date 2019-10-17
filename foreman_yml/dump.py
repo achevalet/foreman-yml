@@ -364,36 +364,29 @@ class ForemanDump(ForemanBase):
             "dns-primary",
             "dns-secondary",
             "boot-mode",
-            "network-type"
+            "network-type",
+            "dhcp-name",
+            "tftp-name",
+            "httpboot-name",
+            "template-name",
+            "mtu"
         ]
         all_subnets = self.fm.subnets.index(per_page=99999)['results']
         for subnet in all_subnets:
-            subnet_tpl = {}
-            dd = self.dict_dash(subnet)
-            for setting in dd:
-                if setting in wanted_keys:
-                    value = dd[setting]
-                    if value is None or value=='':
-                        continue
-                    subnet_tpl[setting] = value
-            # tftp
-            try:
-                subnet_tpl['tftp-proxy'] = dd['tftp']['name']
-            except TypeError:
-                pass
-
-            # dhcp
-            try:
-                subnet_tpl['dhcp-proxy'] = dd['dhcp']['name']
-            except TypeError:
-                pass
+            subnet_tpl = self.filter_dump(subnet, wanted_keys)
 
             # domains
             subnet_tpl['domain'] = []
-
-            all_doms = self.fm.subnets.domains_index(dd['id'])
+            all_doms = self.fm.subnets.domains_index(subnet['id'])
             for dom in all_doms['results']:
                 subnet_tpl['domain'].append(dom['name'])
+
+            # params
+            sobj = self.fm.subnets.show(subnet['id'])
+            if (len(sobj['parameters'])>0):
+                subnet_tpl['parameters'] = {}
+                for param in sobj['parameters']:
+                    subnet_tpl['parameters'][param['name']] = param['value']
 
             ret.append(subnet_tpl)
 

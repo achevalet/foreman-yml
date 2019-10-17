@@ -150,6 +150,10 @@ class Validator:
             Optional('boot-mode'):                      Any('Static', 'DHCP', None),
             Optional('boot-mode'):                      Any('Static', 'DHCP', None),
             Optional('network-type'):                   Any('IPv4', 'IPv6', None),
+            Optional('httpboot-name'):                  Any(str, None),
+            Optional('template-name'):                  Any(str, None),
+            Optional('mtu'):                            Any(int, None),
+            Optional('parameters'):                     Any(str, None)
         })
 
         self.cleanup_arch = Schema({

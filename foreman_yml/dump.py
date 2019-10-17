@@ -486,18 +486,13 @@ class ForemanDump(ForemanBase):
             "lastname",
             "locale",
             "mail",
-            "timezone"
+            "timezone",
+            "admin"
         ]
         all_users = self.fm.users.index(per_page=99999)['results']
         for user in all_users:
-            usr_tpl = {}
+            usr_tpl = self.filter_dump(user, wanted_keys)
             dd = self.dict_dash(user)
-            for setting in dd:
-                if setting in wanted_keys:
-                    value = dd[setting]
-                    if value is None or value=='':
-                        continue
-                    usr_tpl[setting] = value
             auths = dd['auth-source-name']
             if (auths == 'Internal'):
                 auths = 'INTERNAL'

@@ -564,9 +564,24 @@ class ForemanDump(ForemanBase):
 
     def dump_roles(self):
         ret = []
+        all_filters_index = {}
+
+        all_filters = self.fm.filters.index(per_page=99999)['results']
+        for filter in all_filters:
+            fperms = []
+            for perm in filter["permissions"]:
+                fperms.append(perm["name"])
+            all_filters_index[filter["id"]] = fperms
+
         all_roles = self.fm.roles.index(per_page=99999)['results']
         for role in all_roles:
+            perms = []
+            robj = self.fm.roles.show(role['id'])
+            for filter in robj["filters"]:
+                perms  =  all_filters_index[filter["id"]]
+            role["permissions"] = perms
             ret.append(
-                self.filter_dump(role, ["name"] )
+                self.filter_dump(role, ["name", "permissions"] )
             )
+
         return ret

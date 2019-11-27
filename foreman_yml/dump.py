@@ -553,23 +553,32 @@ class ForemanDump(ForemanBase):
     def dump_roles(self):
         ret = []
         all_filters_index = {}
+        all_filters_search_index = {}
 
         all_filters = self.fm.filters.index(per_page=99999)['results']
         for filter in all_filters:
             fperms = []
-            for perm in filter["permissions"]:
-                fperms.append(perm["name"])
-            all_filters_index[filter["id"]] = fperms
+            for perm in filter['permissions']:
+                fperms.append(perm['name'])
+            all_filters_index[filter['id']] = fperms
+            if 'search' in filter:
+                if filter['search'] is not None and filter['search'] != '':
+                  all_filters_search_index[filter['id']] = filter['search']
 
         all_roles = self.fm.roles.index(per_page=99999)['results']
         for role in all_roles:
-            perms = []
+            role['permissions'] = []
             robj = self.fm.roles.show(role['id'])
-            for filter in robj["filters"]:
-                perms  =  all_filters_index[filter["id"]]
-            role["permissions"] = perms
+            for filter in robj['filters']:
+                for p in all_filters_index[filter['id']]:
+                    current_filter = {}
+                    current_filter['name'] = p
+                    if filter['id'] in all_filters_search_index:
+                      current_filter['search'] = all_filters_search_index[filter['id']]
+                    role['permissions'].append(current_filter)
+
             ret.append(
-                self.filter_dump(role, ["name", "permissions"] )
+                self.filter_dump(role, ['name', 'description', 'permissions'])
             )
 
         return ret

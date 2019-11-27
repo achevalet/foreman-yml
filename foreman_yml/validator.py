@@ -178,6 +178,7 @@ class Validator:
 
         self.role = Schema({
             Required('name'):                           All(str),
+            Optional('description'):                    Any(str, None)
             Optional('permissions'):                    Any(list, dict, None)
         })
 

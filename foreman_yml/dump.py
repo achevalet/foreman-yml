@@ -567,6 +567,8 @@ class ForemanDump(ForemanBase):
 
         all_roles = self.fm.roles.index(per_page=99999)['results']
         for role in all_roles:
+            if role['origin'] != None:
+              continue
             role['permissions'] = []
             robj = self.fm.roles.show(role['id'])
             for filter in robj['filters']:

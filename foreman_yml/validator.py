@@ -227,3 +227,24 @@ class Validator:
                                                             None
                                                             )
         })
+
+        self.compute_resource = Schema({
+            Required('name'):                           All(str),
+            Required('url'):                            All(str),
+            Required('provider'):                       All(str),
+            Optional('description'):                    Any(str, None),
+            Optional('url'):                            Any(str, None),
+            Optional('provider-friendly-name'):         Any(str, None),
+            Optional('user'):                           Any(str, None),
+            Optional('tenant'):                         Any(str, None),
+            Optional('domain'):                         Any(str, None),
+            Optional('access-key'):                     Any(str, None),
+            Optional('region'):                         Any(str, None),
+            Optional('datacenter'):                     Any(str, None),
+            Optional('server'):                         Any(str, None),
+            Optional('set-console-password'):           Any(bool, int, None),
+            Optional('caching-enabled'):                Any(bool, int, None),
+            Optional('display-type'):                   Any(str, None),
+            Optional('images'):                         Any(str, None),
+            Optional('compute-attributes'):             Any(list, dict, None),
+        })

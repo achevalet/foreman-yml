@@ -51,6 +51,7 @@ class ForemanDump(ForemanBase):
         supported_objects = [
             'architecture',
             'auth-source-ldap',
+            'compute-resource',
             'domain',
             'environment',
             'hosts',
@@ -582,5 +583,44 @@ class ForemanDump(ForemanBase):
             ret.append(
                 self.filter_dump(role, ['name', 'description', 'permissions'])
             )
+
+        return ret
+
+    def dump_compute_resource(self):
+        ret = []
+        res_tpl = {}
+        wanted_keys = [
+            "name",
+            "description",
+            "url",
+            "provider",
+            "provider-friendly-name",
+            "user",
+            "tenant",
+            "domain",
+            "access-key",
+            "region",
+            "datacenter",
+            "server",
+            "set-console-password",
+            "caching-enabled",
+            "display-type",
+            "images"
+        ]
+        wanted_attr_keys = [
+            "name",
+            "compute-profile-name",
+            "attributes"
+        ]
+
+        all_cpt_res = self.fm.compute_resources.index(per_page=99999)['results']
+        for res in all_cpt_res:
+            robj = self.fm.compute_resources.show(res['id'])
+            res_tpl = self.filter_dump(robj, wanted_keys)
+            res_tpl['compute-attributes'] = []
+            for attr in robj['compute_attributes']:
+                res_attr_tpl = self.filter_dump(attr, wanted_attr_keys)
+                res_tpl['compute-attributes'].append(res_attr_tpl)
+            ret.append(res_tpl)
 
         return ret

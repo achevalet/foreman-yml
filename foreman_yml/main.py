@@ -10,8 +10,8 @@ import os
 import log
 
 
-def fm_dump(fm, object=None):
-    fm.dump(object)
+def fm_dump(fm, object=None, search=None):
+    fm.dump(object, search)
 
 
 def fm_cleanup(fm):
@@ -125,7 +125,12 @@ def main():
             object = sys.argv[3]
         except IndexError:
             object = None
-        fm_dump(fm, object)
+        try:
+            search = sys.argv[4]
+        except IndexError:
+            search = None
+        
+        fm_dump(fm, object, search)
 
     if (function == "cleanup"):
         fm = ForemanCleanup(config)

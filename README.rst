@@ -98,6 +98,13 @@ So you can easily generate per object files:
       foreman-yml dump /path/to/config.yml $obj > foreman_dump_$obj.yml
     done
 
+Search query can optionally be passed as argument#4 to filter on specific object(s):
+
+::
+
+    foreman-yml dump /path/to/config.yml hosts name~myhost.com
+    foreman-yml dump /path/to/config.yml compute-resource type=Foreman::Model::Openstack
+
 
 
 Import settings into foreman

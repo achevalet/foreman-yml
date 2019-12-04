@@ -44,7 +44,7 @@ class ForemanDump(ForemanBase):
 
 
     # dump functionality
-    def dump(self, object=None):
+    def dump(self, object=None, search=None):
         dumpdata = {}
         all_objects = []
         # define supported objects (restrict dump functions name)
@@ -81,7 +81,7 @@ class ForemanDump(ForemanBase):
         # dump objects
         for object in all_objects:
             dump_func = getattr(self, 'dump_%s' %object.replace('-', '_'))
-            dumpdata[object] = dump_func()
+            dumpdata[object] = dump_func(search)
 
         # print the result
         fmyml = { 'foreman': dumpdata }
@@ -103,9 +103,9 @@ class ForemanDump(ForemanBase):
         print( (yml) )
 
 
-    def dump_hosts(self):
+    def dump_hosts(self, search=None):
         ret = []
-        all_hosts = self.fm.hosts.index(per_page=99999)['results']
+        all_hosts = self.fm.hosts.index(per_page=99999,search=search)['results']
         for host in all_hosts:
             host_tpl = {}
             for setting in host:
@@ -164,9 +164,9 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_hostgroup(self):
+    def dump_hostgroup(self, search=None):
         ret = []
-        all_groups = self.fm.hostgroups.index(per_page=99999)['results']
+        all_groups = self.fm.hostgroups.index(per_page=99999,search=search)['results']
         for group in all_groups:
             grp_tpl = {}
             for setting in group:
@@ -210,25 +210,25 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_architecture(self):
+    def dump_architecture(self, search=None):
         ret = []
-        all_archs = self.fm.architectures.index(per_page=99999)['results']
+        all_archs = self.fm.architectures.index(per_page=99999,search=search)['results']
         for arch in all_archs:
             ret.append({ 'name': arch['name'] })
         return ret
 
 
-    def dump_environment(self):
+    def dump_environment(self, search=None):
         ret = []
-        all_envs = self.fm.environments.index(per_page=99999)['results']
+        all_envs = self.fm.environments.index(per_page=99999,search=search)['results']
         for env in all_envs:
             ret.append({ 'name': env['name'] })
         return ret
 
 
-    def dump_os(self):
+    def dump_os(self, search=None):
         ret = []
-        all_os = self.fm.operatingsystems.index(per_page=99999)['results']
+        all_os = self.fm.operatingsystems.index(per_page=99999,search=search)['results']
         for os in all_os:
             os_tpl = {}
             for setting in os:
@@ -274,9 +274,9 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_media(self):
+    def dump_media(self, search=None):
         ret = []
-        all_media = self.fm.media.index(per_page=99999)['results']
+        all_media = self.fm.media.index(per_page=99999,search=search)['results']
         mod_tpl = {}
         for medium in all_media:
             med_tpl = {}
@@ -294,9 +294,9 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_model(self):
+    def dump_model(self, search=None):
         ret = []
-        all_mods = self.fm.models.index(per_page=99999)['results']
+        all_mods = self.fm.models.index(per_page=99999,search=search)['results']
         for model in all_mods:
             mod_tpl = {}
             for setting in model:
@@ -315,9 +315,9 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_domain(self):
+    def dump_domain(self, search=None):
         ret = []
-        all_doms = self.fm.domains.index(per_page=99999)['results']
+        all_doms = self.fm.domains.index(per_page=99999,search=search)['results']
         for dom in all_doms:
             dom_tpl = {}
             for setting in dom:
@@ -340,9 +340,9 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_smart_proxy(self):
+    def dump_smart_proxy(self, search=None):
         ret = []
-        all_proxys = self.fm.smart_proxies.index(per_page=99999)['results']
+        all_proxys = self.fm.smart_proxies.index(per_page=99999,search=search)['results']
         for proxy in all_proxys:
             sp_tpl = {}
             sp_tpl['name'] = proxy['name']
@@ -351,7 +351,7 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_subnet(self):
+    def dump_subnet(self, search=None):
         ret = []
         wanted_keys = [
             "name",
@@ -372,7 +372,7 @@ class ForemanDump(ForemanBase):
             "template-name",
             "mtu"
         ]
-        all_subnets = self.fm.subnets.index(per_page=99999)['results']
+        all_subnets = self.fm.subnets.index(per_page=99999,search=search)['results']
         for subnet in all_subnets:
             subnet_tpl = self.filter_dump(subnet, wanted_keys)
 
@@ -394,9 +394,9 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_settings(self):
+    def dump_settings(self, search=None):
         ret = []
-        all_settings = self.fm.settings.index(per_page=99999)['results']
+        all_settings = self.fm.settings.index(per_page=99999,search=search)['results']
         for settings in all_settings:
             set_tpl = {}
             for setting in settings:
@@ -415,9 +415,9 @@ class ForemanDump(ForemanBase):
 
 
 
-    def dump_partition_table(self):
+    def dump_partition_table(self, search=None):
         ret = []
-        all_ptables = self.fm.ptables.index(per_page=99999)['results']
+        all_ptables = self.fm.ptables.index(per_page=99999,search=search)['results']
         for ptable in all_ptables:
             pt_tpl = {}
             for setting in ptable:
@@ -451,7 +451,7 @@ class ForemanDump(ForemanBase):
 
 
 
-    def dump_provisioning_template(self):
+    def dump_provisioning_template(self, search=None):
         ret = []
         wanted_keys = [
             "snippet",
@@ -460,7 +460,7 @@ class ForemanDump(ForemanBase):
             "locked",
             "audit-comment"
         ]
-        all_provt = self.fm.provisioning_templates.index(per_page=99999)['results']
+        all_provt = self.fm.provisioning_templates.index(per_page=99999,search=search)['results']
 
         for provt in all_provt:
             pt_tpl = {}
@@ -479,7 +479,7 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_users(self):
+    def dump_users(self, search=None):
         ret = []
         wanted_keys = [
             "login",
@@ -490,7 +490,7 @@ class ForemanDump(ForemanBase):
             "timezone",
             "admin"
         ]
-        all_users = self.fm.users.index(per_page=99999)['results']
+        all_users = self.fm.users.index(per_page=99999,search=search)['results']
         for user in all_users:
             usr_tpl = self.filter_dump(user, wanted_keys)
             dd = self.dict_dash(user)
@@ -503,7 +503,7 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_auth_source_ldap(self):
+    def dump_auth_source_ldap(self, search=None):
         ret = []
         wanted_keys = [
             "name",
@@ -525,16 +525,16 @@ class ForemanDump(ForemanBase):
             "use-netgroups",
             "timezone"
         ]
-        all_ldaps = self.fm.auth_source_ldaps.index(per_page=99999)['results']
+        all_ldaps = self.fm.auth_source_ldaps.index(per_page=99999,search=search)['results']
         for ldaps in all_ldaps:
             dump_obj = self.filter_dump(ldaps, wanted_keys)
             ret.append(dump_obj)
         return ret
 
 
-    def dump_usergroups(self):
+    def dump_usergroups(self, search=None):
         ret = []
-        all_groups = self.fm.usergroups.index(per_page=99999)['results']
+        all_groups = self.fm.usergroups.index(per_page=99999,search=search)['results']
         for group in all_groups:
             gobj = {
                 "name": group['name'],
@@ -551,12 +551,12 @@ class ForemanDump(ForemanBase):
         return ret
 
 
-    def dump_roles(self):
+    def dump_roles(self, search=None):
         ret = []
         all_filters_index = {}
         all_filters_search_index = {}
 
-        all_filters = self.fm.filters.index(per_page=99999)['results']
+        all_filters = self.fm.filters.index(per_page=99999,search=search)['results']
         for filter in all_filters:
             fperms = []
             for perm in filter['permissions']:
@@ -586,7 +586,7 @@ class ForemanDump(ForemanBase):
 
         return ret
 
-    def dump_compute_resource(self):
+    def dump_compute_resource(self, search=None):
         ret = []
         res_tpl = {}
         wanted_keys = [
@@ -613,7 +613,7 @@ class ForemanDump(ForemanBase):
             "attributes"
         ]
 
-        all_cpt_res = self.fm.compute_resources.index(per_page=99999)['results']
+        all_cpt_res = self.fm.compute_resources.index(per_page=99999,search=search)['results']
         for res in all_cpt_res:
             robj = self.fm.compute_resources.show(res['id'])
             res_tpl = self.filter_dump(robj, wanted_keys)

@@ -67,6 +67,7 @@ class ForemanDump(ForemanBase):
             'provisioning-template',
             'roles',
             'settings',
+            'smart-class-parameter',
             'smart-proxy',
             'subnet',
             'users',
@@ -791,5 +792,50 @@ class ForemanDump(ForemanBase):
             bm_tpl = {}
             bm_tpl[bm['name']] = self.filter_dump(bm, wanted_keys)
             ret.append(bm_tpl)
+
+        return ret
+
+
+    def dump_smart_class_parameter(self, search=None):
+        ret = []
+        wanted_keys = [
+            "description",
+            "override",
+            "parameter-type",
+            "hidden-value?",
+            "omit",
+            "required",
+            "validator-type",
+            "validator-rule",
+            "merge-overrides",
+            "merge-default",
+            "avoid-duplicates",
+            "override-values",
+            "override-value-order",
+            "use-puppet-default",
+            "parameter",
+            "default-value",
+            "puppetclass-name",
+        ]
+        wanted_override_keys = [
+            "match",
+            "value",
+            "omit",
+            "use_puppet_default",
+        ]
+        all_params = self.fm.smart_class_parameters.index(per_page=99999,search="override=true and "+search)['results']
+        for param in all_params:
+            param_tpl = {}
+            pobj = self.fm.smart_class_parameters.show(param['id'],show_hidden='true')
+            pname = "%s::%s" % (pobj['puppetclass_name'], pobj['parameter'])
+            param_tpl[pname] = self.filter_dump(pobj, wanted_keys)
+            if 'override-values' in param_tpl[pname]:
+                param_tpl[pname]['override-values'] = []
+                for ov in pobj['override_values']:
+                    ov_tpl = self.filter_dump(ov, wanted_override_keys)
+                    param_tpl[pname]['override-values'].append(ov_tpl)
+            if pobj['omit'] == True and 'default-value' in param_tpl[pname]:
+                del param_tpl[pname]['default-value']
+            ret.append(param_tpl)
 
         return ret

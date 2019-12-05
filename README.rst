@@ -85,6 +85,7 @@ List of supported objects:
 - provisioning-template
 - roles
 - settings
+- smart-class-parameter
 - smart-proxy
 - subnet
 - users
@@ -109,7 +110,9 @@ Search query can optionally be passed as argument#4 to filter on specific object
     foreman-yml dump /path/to/config.yml hosts name~myhost.com
     foreman-yml dump /path/to/config.yml compute-resource type=Foreman::Model::Openstack
 
-
+.. note::
+   Only smart class parameters with override=true are dumped.
+   Hidden parameters are dumped in clear text.
 
 Import settings into foreman
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

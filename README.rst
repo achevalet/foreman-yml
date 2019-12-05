@@ -70,6 +70,7 @@ List of supported objects:
 - architecture
 - auth-source-ldap
 - compute-resource
+- compute-profile
 - domain
 - environment
 - hosts

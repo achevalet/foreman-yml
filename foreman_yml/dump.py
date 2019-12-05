@@ -52,6 +52,7 @@ class ForemanDump(ForemanBase):
             'architecture',
             'auth-source-ldap',
             'compute-resource',
+            'compute-profile',
             'domain',
             'environment',
             'hosts',
@@ -696,4 +697,12 @@ class ForemanDump(ForemanBase):
                 res_tpl[name]['compute-attributes'].append(res_attr_tpl)
             ret.append(res_tpl)
 
+        return ret
+
+
+    def dump_compute_profile(self, search=None):
+        ret = []
+        all_profiles = self.fm.compute_profiles.index(per_page=99999,search=search)['results']
+        for profile in all_profiles:
+            ret.append({ 'name': profile['name'] })
         return ret

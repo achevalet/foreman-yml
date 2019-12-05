@@ -69,6 +69,7 @@ List of supported objects:
 
 - architecture
 - auth-source-ldap
+- bookmark
 - compute-resource
 - compute-profile
 - domain

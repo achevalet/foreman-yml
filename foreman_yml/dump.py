@@ -51,6 +51,7 @@ class ForemanDump(ForemanBase):
         supported_objects = [
             'architecture',
             'auth-source-ldap',
+            'bookmark',
             'compute-resource',
             'compute-profile',
             'domain',
@@ -773,5 +774,22 @@ class ForemanDump(ForemanBase):
             param_tpl = {}
             param_tpl[param['name']] = self.filter_dump(param, wanted_keys)
             ret.append(param_tpl)
+
+        return ret
+
+
+    def dump_bookmark(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "controller",
+            "query",
+            "public"
+        ]
+        all_bm = self.fm.bookmarks.index(per_page=99999,search=search)['results']
+        for bm in all_bm:
+            bm_tpl = {}
+            bm_tpl[bm['name']] = self.filter_dump(bm, wanted_keys)
+            ret.append(bm_tpl)
 
         return ret

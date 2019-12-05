@@ -55,6 +55,7 @@ class ForemanDump(ForemanBase):
             'compute-profile',
             'domain',
             'environment',
+            'global-parameter',
             'hosts',
             'hostgroup',
             'job-template',
@@ -755,5 +756,22 @@ class ForemanDump(ForemanBase):
                 for input in jt_tpl[name]['template-inputs']:
                     del input['id']
             ret.append(jt_tpl)
+
+        return ret
+
+
+    def dump_global_parameter(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "value",
+            "parameter-type",
+            "hidden-value?"
+        ]
+        all_params = self.fm.common_parameters.index(per_page=99999,search=search,show_hidden='true')['results']
+        for param in all_params:
+            param_tpl = {}
+            param_tpl[param['name']] = self.filter_dump(param, wanted_keys)
+            ret.append(param_tpl)
 
         return ret

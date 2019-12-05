@@ -73,6 +73,7 @@ List of supported objects:
 - compute-profile
 - domain
 - environment
+- global-parameter
 - hosts
 - hostgroup
 - job-template

@@ -379,6 +379,11 @@ class ForemanDump(ForemanBase):
 
     def dump_smart_proxy(self, search=None):
         ret = []
+        wanted_keys = [
+            "name",
+            "url",
+            "download-policy"
+        ]
         all_proxys = self.fm.smart_proxies.index(per_page=99999,search=search)['results']
         for proxy in all_proxys:
             sp_tpl = {}
@@ -386,9 +391,7 @@ class ForemanDump(ForemanBase):
                 name = proxy['name']
             else:
                 continue
-            sp_tpl[name] = {}
-            sp_tpl[name]['name'] = proxy['name']
-            sp_tpl[name]['url'] = proxy['url']
+            sp_tpl[name] = self.filter_dump(proxy, wanted_keys)
             ret.append(sp_tpl)
         return ret
 

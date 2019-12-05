@@ -176,8 +176,8 @@ class ForemanDump(ForemanBase):
         all_groups = self.fm.hostgroups.index(per_page=99999,search=search)['results']
         for group in all_groups:
             grp_tpl = {}
-            if 'name' in group:
-                name = group['name']
+            if 'title' in group:
+                name = group['title']
             else:
                 continue
             grp_tpl[name] = {}

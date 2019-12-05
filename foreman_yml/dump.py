@@ -57,6 +57,7 @@ class ForemanDump(ForemanBase):
             'environment',
             'hosts',
             'hostgroup',
+            'job-template',
             'model',
             'media',
             'os',
@@ -705,4 +706,45 @@ class ForemanDump(ForemanBase):
         all_profiles = self.fm.compute_profiles.index(per_page=99999,search=search)['results']
         for profile in all_profiles:
             ret.append({ 'name': profile['name'] })
+        return ret
+
+
+    def dump_job_template(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "description-format",
+            "template",
+            "locked",
+            "audit-comment",
+            "job-category",
+            "provider-type",
+            "snippet",
+            "template-inputs"
+            #"effective-user"
+        ]
+        wanted_user_keys = [
+            "value",
+            "current-user",
+            "overridable"
+        ]
+        try:
+            all_jobt = self.fm.job_templates.index(per_page=99999,search=search)['results']
+        except:
+            pass
+
+        for jobt in all_jobt:
+            jt_tpl = {}
+            if 'name' in jobt:
+                name = jobt['name']
+            else:
+                continue
+            jto = self.fm.job_templates.show(jobt['id'])
+            jt_tpl[name] = self.filter_dump(jto, wanted_keys)
+            jt_tpl[name]['effective-user'] = self.filter_dump(jto['effective_user'], wanted_user_keys)
+            if 'template-inputs' in jt_tpl[name]:
+                for input in jt_tpl[name]['template-inputs']:
+                    del input['id']
+            ret.append(jt_tpl)
+
         return ret

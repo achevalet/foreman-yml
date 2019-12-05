@@ -75,6 +75,7 @@ List of supported objects:
 - environment
 - hosts
 - hostgroup
+- job-template
 - model
 - media
 - os

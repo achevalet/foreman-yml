@@ -823,7 +823,10 @@ class ForemanDump(ForemanBase):
             "omit",
             "use_puppet_default",
         ]
-        all_params = self.fm.smart_class_parameters.index(per_page=99999,search="override=true and "+search)['results']
+        search_query = "override=true"
+        if search is not None:
+            search_query = "%s and %s" % (search_query, search)
+        all_params = self.fm.smart_class_parameters.index(per_page=99999,search=search_query)['results']
         for param in all_params:
             param_tpl = {}
             pobj = self.fm.smart_class_parameters.show(param['id'],show_hidden='true')

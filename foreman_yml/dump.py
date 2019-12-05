@@ -85,6 +85,9 @@ class ForemanDump(ForemanBase):
             dump_func = getattr(self, 'dump_%s' %object.replace('-', '_'))
             dumpdata[object] = dump_func(search)
 
+        # filter empty objects
+        dumpdata = self.filter_dump(dumpdata, supported_objects)
+
         # print the result
         fmyml = { 'foreman': dumpdata }
 

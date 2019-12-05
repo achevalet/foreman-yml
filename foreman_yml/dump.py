@@ -165,7 +165,7 @@ class ForemanDump(ForemanBase):
                     host_tpl[name]['puppet-ca-proxy'] = value
             # host params
             try:
-                hobj = self.fm.hosts.show(host['id'])
+                hobj = self.fm.hosts.show(host['id'],show_hidden_parameters='true')
                 if (len(hobj['parameters'])>0):
                     host_tpl[name]['parameters'] = {}
                     for param in hobj['parameters']:
@@ -212,7 +212,7 @@ class ForemanDump(ForemanBase):
                 elif (setting == "parent_name" ):
                     grp_tpl[name]['parent'] = value
             try:
-                hobj = self.fm.hostgroups.show(group['id'])
+                hobj = self.fm.hostgroups.show(group['id'],show_hidden_parameters='true')
                 if (len(hobj['parameters'])>0):
                     grp_tpl[name]['parameters'] = {}
                     for param in hobj['parameters']:
@@ -371,7 +371,7 @@ class ForemanDump(ForemanBase):
                 if (setting == "dns"):
                     dom_tpl[name]['dns-proxy'] = value['name']
             # params
-            domobj = self.fm.domains.show(dom['id'])
+            domobj = self.fm.domains.show(dom['id'],show_hidden_parameters='true')
             if (len(domobj['parameters'])>0):
                 dom_tpl[name]['parameters'] = {}
                 for param in domobj['parameters']:
@@ -437,7 +437,7 @@ class ForemanDump(ForemanBase):
                 subnet_tpl[name]['domain'].append(dom['name'])
 
             # params
-            sobj = self.fm.subnets.show(subnet['id'])
+            sobj = self.fm.subnets.show(subnet['id'],show_hidden_parameters='true')
             if (len(sobj['parameters'])>0):
                 subnet_tpl[name]['parameters'] = {}
                 for param in sobj['parameters']:

@@ -690,7 +690,10 @@ class ForemanDump(ForemanBase):
                 name = res['name']
             else:
                 continue
-            robj = self.fm.compute_resources.show(res['id'])
+            try:
+                robj = self.fm.compute_resources.show(res['id'])
+            except:
+                continue
             res_tpl[name] = self.filter_dump(robj, wanted_keys)
             res_tpl[name]['compute-attributes'] = []
             for attr in robj['compute_attributes']:

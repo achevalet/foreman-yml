@@ -524,16 +524,8 @@ class ForemanDump(ForemanBase):
                 name = provt['name']
             else:
                 continue
-            pt_tpl[name] = {}
-            dd = self.dict_dash(provt)
-            for setting in dd:
-                if setting in wanted_keys:
-                    value = dd[setting]
-                    if value is None or value=='':
-                        continue
-                    pt_tpl[name][setting] = value
-
-            pto = self.fm.provisioning_templates.show(dd['id'])
+            pt_tpl[name] = self.filter_dump(provt, wanted_keys)
+            pto = self.fm.provisioning_templates.show(provt['id'])
             pt_tpl[name]['template'] = (pto['template'])
             ret.append(pt_tpl)
 

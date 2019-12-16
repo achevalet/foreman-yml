@@ -526,7 +526,8 @@ class ForemanDump(ForemanBase):
                 continue
             pt_tpl[name] = self.filter_dump(provt, wanted_keys)
             pto = self.fm.provisioning_templates.show(provt['id'])
-            pt_tpl[name]['template'] = (pto['template'])
+            # Remove trailing spaces in template - WA https://github.com/yaml/pyyaml/issues/121
+            pt_tpl[name]['template'] = self.rstrip_multilines(pto['template'])
             ret.append(pt_tpl)
 
         return ret
@@ -718,14 +719,12 @@ class ForemanDump(ForemanBase):
         wanted_keys = [
             "name",
             "description-format",
-            "template",
             "locked",
             "audit-comment",
             "job-category",
             "provider-type",
             "snippet",
             "template-inputs"
-            #"effective-user"
         ]
         wanted_user_keys = [
             "value",
@@ -745,6 +744,7 @@ class ForemanDump(ForemanBase):
                 continue
             jto = self.fm.job_templates.show(jobt['id'])
             jt_tpl[name] = self.filter_dump(jto, wanted_keys)
+            jt_tpl[name]['template'] = self.rstrip_multilines(jto['template'])
             jt_tpl[name]['effective-user'] = self.filter_dump(jto['effective_user'], wanted_user_keys)
             if 'template-inputs' in jt_tpl[name]:
                 for input in jt_tpl[name]['template-inputs']:

@@ -106,3 +106,9 @@ class ForemanBase:
 
         # nothing found, return False
         return False
+
+    def rstrip_multilines(self, data):
+        out = []
+        for line in data.splitlines():
+            out.append(line.rstrip())
+        return '\n'.join(out)

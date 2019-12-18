@@ -716,6 +716,7 @@ class ForemanDump(ForemanBase):
 
     def dump_job_template(self, search=None):
         ret = []
+        all_jobt = []
         wanted_keys = [
             "name",
             "description-format",

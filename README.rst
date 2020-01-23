@@ -78,9 +78,11 @@ List of supported objects:
 - hosts
 - hostgroup
 - job-template
+- location
 - model
 - media
 - os
+- organization
 - partition-table
 - provisioning-template
 - roles

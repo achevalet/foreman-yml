@@ -60,8 +60,10 @@ class ForemanDump(ForemanBase):
             'hosts',
             'hostgroup',
             'job-template',
+            'location',
             'model',
             'media',
+            'organization',
             'os',
             'partition-table',
             'provisioning-template',
@@ -71,7 +73,7 @@ class ForemanDump(ForemanBase):
             'smart-proxy',
             'subnet',
             'users',
-            'usergroups',
+            'usergroups'
         ]
 
         # define target objects
@@ -82,6 +84,9 @@ class ForemanDump(ForemanBase):
             all_objects = [object]
         else:
             all_objects = supported_objects
+
+        # get all organizations
+        self.all_org = self.fm.organizations.index(per_page=99999)['results']
 
         # dump objects
         for object in all_objects:
@@ -833,5 +838,175 @@ class ForemanDump(ForemanBase):
             if pobj['omit'] == True and 'default-value' in param_tpl[pname]:
                 del param_tpl[pname]['default-value']
             ret.append(param_tpl)
+
+        return ret
+
+
+    def dump_organization(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "title",
+            "description",
+            "compute-resources",
+            "domains",
+            "environments",
+            "hostgroups",
+            "locations",
+            "media",
+            "parameters",
+            "provisioning-templates",
+            "ptables",
+            "realms",
+            "select-all-types",
+            "smart-proxies",
+            "subnets",
+            "users"
+        ]
+        for org in self.all_org:
+            tpl = {}
+            tpl[org['name']] = {}
+            org_info = self.fm.organizations.show(org['id'])
+            
+            tpl[org['name']]['select-all-types'] = org_info['select_all_types']
+            if not 'User' in org_info['select_all_types']:
+                tpl[org['name']]['users'] = []
+                for obj in org_info['users']:
+                    tpl[org['name']]['users'].append(obj['login'])
+            if not 'SmartProxy' in org_info['select_all_types']:
+                tpl[org['name']]['smart-proxies'] = []
+                for obj in org_info['smart_proxies']:
+                    tpl[org['name']]['smart-proxies'].append(obj['name'])
+            if not 'Subnet' in org_info['select_all_types']:
+                tpl[org['name']]['subnets'] = []
+                for obj in org_info['subnets']:
+                    tpl[org['name']]['subnets'].append(obj['name'])
+            if not 'ComputeResource' in org_info['select_all_types']:
+                tpl[org['name']]['compute-resources'] = []
+                for obj in org_info['compute_resources']:
+                    tpl[org['name']]['compute-resources'].append(obj['name'])
+            if not 'Medium' in org_info['select_all_types']:
+                tpl[org['name']]['media'] = []
+                for obj in org_info['media']:
+                    tpl[org['name']]['media'].append(obj['name'])
+            if not 'Ptable' in org_info['select_all_types']:
+                tpl[org['name']]['ptables'] = []
+                for obj in org_info['ptables']:
+                    tpl[org['name']]['ptables'].append(obj['name'])
+            if not 'ProvisioningTemplate' in org_info['select_all_types']:
+                tpl[org['name']]['provisioning-templates'] = []
+                for obj in org_info['provisioning_templates']:
+                    tpl[org['name']]['provisioning-templates'].append(obj['name'])
+            if not 'Domain' in org_info['select_all_types']:
+                tpl[org['name']]['domains'] = []
+                for obj in org_info['domains']:
+                    tpl[org['name']]['domains'].append(obj['name'])
+            if not 'Realm' in org_info['select_all_types']:
+                tpl[org['name']]['realms'] = []
+                for obj in org_info['realms']:
+                    tpl[org['name']]['realms'].append(obj['name'])
+            if not 'Environment' in org_info['select_all_types']:
+                tpl[org['name']]['environments'] = []
+                for obj in org_info['environments']:
+                    tpl[org['name']]['environments'].append(obj['name'])
+            if not 'Hostgroup' in org_info['select_all_types']:
+                tpl[org['name']]['hostgroups'] = []
+                for obj in org_info['hostgroups']:
+                    tpl[org['name']]['hostgroups'].append(obj['name'])
+            tpl[org['name']]['locations'] = []
+            for obj in org_info['locations']:
+                tpl[org['name']]['locations'].append(obj['name'])
+            tpl[org['name']]['parameters'] = {}
+            for obj in org_info['parameters']:
+                tpl[org['name']]['parameters'][obj['name']] = obj['value']
+            
+            tpl[org['name']] = self.filter_dump(tpl[org['name']], wanted_keys)
+            ret.append(tpl)
+
+        return ret
+
+
+    def dump_location(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "title",
+            "description",
+            "compute-resources",
+            "domains",
+            "environments",
+            "hostgroups",
+            "media",
+            "organizations",
+            "parameters",
+            "provisioning-templates",
+            "ptables",
+            "realms",
+            "select-all-types",
+            "smart-proxies",
+            "subnets",
+            "users"
+        ]
+        all_loc = self.fm.locations.index(per_page=99999,search=search)['results']
+        for loc in all_loc:
+            tpl = {}
+            tpl[loc['name']] = {}
+            loc_info = self.fm.locations.show(loc['id'])
+            
+            tpl[loc['name']]['select-all-types'] = loc_info['select_all_types']
+            if not 'User' in loc_info['select_all_types']:
+                tpl[loc['name']]['users'] = []
+                for obj in loc_info['users']:
+                    tpl[loc['name']]['users'].append(obj['login'])
+            if not 'SmartProxy' in loc_info['select_all_types']:
+                tpl[loc['name']]['smart-proxies'] = []
+                for obj in loc_info['smart_proxies']:
+                    tpl[loc['name']]['smart-proxies'].append(obj['name'])
+            if not 'Subnet' in loc_info['select_all_types']:
+                tpl[loc['name']]['subnets'] = []
+                for obj in loc_info['subnets']:
+                    tpl[loc['name']]['subnets'].append(obj['name'])
+            if not 'ComputeResource' in loc_info['select_all_types']:
+                tpl[loc['name']]['compute-resources'] = []
+                for obj in loc_info['compute_resources']:
+                    tpl[loc['name']]['compute-resources'].append(obj['name'])
+            if not 'Medium' in loc_info['select_all_types']:
+                tpl[loc['name']]['media'] = []
+                for obj in loc_info['media']:
+                    tpl[loc['name']]['media'].append(obj['name'])
+            if not 'Ptable' in loc_info['select_all_types']:
+                tpl[loc['name']]['ptables'] = []
+                for obj in loc_info['ptables']:
+                    tpl[loc['name']]['ptables'].append(obj['name'])
+            if not 'ProvisioningTemplate' in loc_info['select_all_types']:
+                tpl[loc['name']]['provisioning-templates'] = []
+                for obj in loc_info['provisioning_templates']:
+                    tpl[loc['name']]['provisioning-templates'].append(obj['name'])
+            if not 'Domain' in loc_info['select_all_types']:
+                tpl[loc['name']]['domains'] = []
+                for obj in loc_info['domains']:
+                    tpl[loc['name']]['domains'].append(obj['name'])
+            if not 'Realm' in loc_info['select_all_types']:
+                tpl[loc['name']]['realms'] = []
+                for obj in loc_info['realms']:
+                    tpl[loc['name']]['realms'].append(obj['name'])
+            if not 'Environment' in loc_info['select_all_types']:
+                tpl[loc['name']]['environments'] = []
+                for obj in loc_info['environments']:
+                    tpl[loc['name']]['environments'].append(obj['name'])
+            if not 'Hostgroup' in loc_info['select_all_types']:
+                tpl[loc['name']]['hostgroups'] = []
+                for obj in loc_info['hostgroups']:
+                    tpl[loc['name']]['hostgroups'].append(obj['name'])
+            tpl[loc['name']]['organizations'] = []
+            for obj in loc_info['organizations']:
+                tpl[loc['name']]['organizations'].append(obj['name'])
+            tpl[loc['name']]['parameters'] = {}
+            for obj in loc_info['parameters']:
+                if obj != {}:
+                    tpl[loc['name']]['parameters'][obj['name']] = obj['value']
+            
+            tpl[loc['name']] = self.filter_dump(tpl[loc['name']], wanted_keys)
+            ret.append(tpl)
 
         return ret

@@ -76,7 +76,7 @@ class ForemanBase:
         for setting in dd:
             if setting in wanted_keys:
                 value = dd[setting]
-                if value is None or value=='' or value==[]:
+                if value is None or value=='' or value==[] or value=={}:
                     continue
                 ret[setting] = value
         return ret

@@ -93,6 +93,18 @@ List of supported objects:
 - users
 - usergroups
 
+If Katello plugin is intalled, following objects are also supported:
+
+- activation-keys
+- content-views
+- gpg-keys
+- lifecycle-environments
+- products
+- repos
+- sync-plans
+
+Katello objects are sorted by organization.
+
 ::
 
     foreman-yml dump /path/to/config.yml settings > foreman_dump.yml

@@ -75,6 +75,24 @@ class ForemanDump(ForemanBase):
             'users',
             'usergroups'
         ]
+        supported_katello_objects = [
+            'gpg-keys',
+            'sync-plans',
+            'products',
+            'repos',
+            'lifecycle-environments',
+            'content-views',
+            'activation-keys'
+        ]
+
+        # check katello status
+        try:
+            self.katello_status = self.fm.status.ping_server_status()
+            supported_objects = supported_objects + supported_katello_objects
+        except:
+            pass
+
+        supported_objects.sort()
 
         # define target objects
         if object is not None:
@@ -1008,5 +1026,208 @@ class ForemanDump(ForemanBase):
             
             tpl[loc['name']] = self.filter_dump(tpl[loc['name']], wanted_keys)
             ret.append(tpl)
+
+        return ret
+
+
+    def dump_gpg_keys(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "content"
+        ]
+        for org in self.all_org:
+            tpl = {}
+            all_keys = self.fm.gpg_keys.index(per_page=99999,search=search,organization_id=org['id'])
+            if all_keys['results']:
+                tpl[org['name']] = {}
+                for key in all_keys['results']:
+                    tpl[org['name']][key['name']] = self.filter_dump(key, wanted_keys)
+                ret.append(tpl)
+
+        return ret
+
+
+    def dump_sync_plans(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "description",
+            "interval",
+            "enabled",
+            "cron_expression",
+            "sync_date"
+        ]
+        for org in self.all_org:
+            tpl = {}
+            all_sp = self.fm.sync_plans.index(per_page=99999,search=search,organization_id=org['id'])
+            if all_sp['results']:
+                tpl[org['name']] = {}
+                for sp in all_sp['results']:
+                    tpl[org['name']][sp['name']] = self.filter_dump(sp, wanted_keys)
+                ret.append(tpl)
+
+        return ret
+
+
+    def dump_products(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "label",
+            "description"
+        ]
+        for org in self.all_org:
+            tpl = {}
+            all_products = self.fm.products.index(per_page=99999,search=search,organization_id=org['id'])
+            if all_products['results']:
+                tpl[org['name']] = {}
+                for product in all_products['results']:
+                    prod_info = self.fm.products.show(product['id'])
+                    tpl[org['name']][product['name']] = self.filter_dump(prod_info, wanted_keys)
+                    if 'gpg_key' in prod_info:
+                        tpl[org['name']][product['name']]['gpg-key'] = prod_info['gpg_key']['name']
+                    if prod_info['sync_plan'] != None:
+                        tpl[org['name']][product['name']]['sync-plan'] = prod_info['sync_plan']['name']
+                ret.append(tpl)
+
+        return ret
+
+
+    def dump_repos(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "label",
+            "description",
+            "content-type",
+            "url",
+            "arch",
+            "mirror-on-sync",
+            "verify-ssl-on-sync",
+            "checksum-type",
+            "download-policy",
+            "ssl-ca-cert-id",
+            "ssl-client-cert-id",
+            "ssl-client-key-id",
+            "upstream-username",
+            "deb-releases",
+            "deb-components",
+            "deb-architectures",
+            "ignorable-content"
+        ]
+        for org in self.all_org:
+            tpl = {}
+            all_repos = self.fm.repositories.index(per_page=99999,search=search,organization_id=org['id'])
+            if all_repos['results']:
+                tpl[org['name']] = {}
+                for repo in all_repos['results']:
+                    repo_info = self.fm.repositories.show(repo['id'])
+                    tpl[org['name']][repo['name']] = self.filter_dump(repo_info, wanted_keys)
+                    tpl[org['name']][repo['name']]['product'] = repo_info['product']['name']
+                    if repo_info['gpg_key'] != None:
+                        tpl[org['name']][repo['name']]['gpg-key'] = repo_info['gpg_key']['name']
+                ret.append(tpl)
+
+        return ret
+
+
+    def dump_lifecycle_environments(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "label",
+            "description"
+        ]
+        for org in self.all_org:
+            tpl = {}
+            try:
+                all_env = self.fm.lifecycle_environments.index(per_page=99999,search=search,organization_id=org['id'])
+            except:
+                continue
+            if all_env['results']:
+                tpl[org['name']] = {}
+                for env in all_env['results']:
+                    if env['library'] == True:
+                        continue
+                    tpl[org['name']][env['name']] = self.filter_dump(env, wanted_keys)
+            ret.append(tpl)
+
+        return ret
+
+
+    def dump_content_views(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "label",
+            "description",
+            "composite",
+            "force-puppet-environment",
+            "auto-publish",
+            "solve-dependencies",
+            "puppet-modules",
+            "repositories"
+        ]
+        for org in self.all_org:
+            tpl = {}
+            all_cv = self.fm.content_views.index(per_page=99999,search='name != "Default Organization View"',organization_id=org['id'])
+            if all_cv['results']:
+                tpl[org['name']] = {}
+                for cv in all_cv['results']:
+                    cv_info = self.fm.content_views.show(cv['id'])
+                    tpl[org['name']][cv['name']] = self.filter_dump(cv_info, wanted_keys)
+                    if cv_info['components']:
+                        all_comp = []
+                        for comp in cv_info['components']:
+                            all_comp.append(comp['content_view']['name'])
+                        tpl[org['name']][cv['name']]['components'] = all_comp
+                    if 'repositories' in tpl[org['name']][cv['name']]:
+                        if cv_info['composite']:
+                            del tpl[org['name']][cv['name']]['repositories']
+                        else:
+                            for repo in tpl[org['name']][cv['name']]['repositories']:
+                                del repo['id']
+                                del repo['label']
+            if tpl:
+                ret.append(tpl)
+
+        return ret
+
+
+    def dump_activation_keys(self, search=None):
+        ret = []
+        wanted_keys = [
+            "name",
+            "description",
+            "unlimited-hosts",
+            "max-hosts"
+        ]
+        for org in self.all_org:
+            tpl = {}
+            all_keys = self.fm.activation_keys.index(per_page=99999,search=search,organization_id=org['id'])
+            if all_keys['results']:
+                tpl[org['name']] = {}
+                for key in all_keys['results']:
+                    products = []
+                    enabled_repos = []
+                    disabled_repos = []
+                    key_info = self.fm.activation_keys.show(key['id'])
+                    tpl[org['name']][key['name']] = self.filter_dump(key_info, wanted_keys)
+                    tpl[org['name']][key['name']]['content-view'] = key_info['content_view']['name']
+                    tpl[org['name']][key['name']]['environment'] = key_info['environment']['name']
+                    for prod in key_info['products']:
+                        products.append(prod['name'])
+                    tpl[org['name']][key['name']]['products'] = products
+                    for repo in key_info['content_overrides']:
+                        if repo['value'] == '1':
+                            enabled_repos.append(repo['content_label'])
+                        else:
+                            disabled_repos.append(repo['content_label'])
+                    if enabled_repos:
+                        tpl[org['name']][key['name']]['enabled-repos'] = enabled_repos
+                    if disabled_repos:
+                        tpl[org['name']][key['name']]['disabled-repos'] = disabled_repos
+                ret.append(tpl)
 
         return ret

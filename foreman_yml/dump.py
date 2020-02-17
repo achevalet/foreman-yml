@@ -280,7 +280,9 @@ class ForemanDump(ForemanBase):
         ret = []
         all_archs = self.fm.architectures.index(per_page=99999,search=search)['results']
         for arch in all_archs:
-            ret.append({ 'name': arch['name'] })
+            tpl = {}
+            tpl[arch['name']] = { 'name': arch['name'] }
+            ret.append(tpl)
         return ret
 
 
@@ -288,7 +290,9 @@ class ForemanDump(ForemanBase):
         ret = []
         all_envs = self.fm.environments.index(per_page=99999,search=search)['results']
         for env in all_envs:
-            ret.append({ 'name': env['name'] })
+            tpl = {}
+            tpl[env['name']] = { 'name': env['name'] }
+            ret.append(tpl)
         return ret
 
 
@@ -498,23 +502,22 @@ class ForemanDump(ForemanBase):
 
     def dump_settings(self, search=None):
         ret = []
+        wanted_keys = [
+            "category-name",
+            "description",
+            "full-name",
+            "name",
+            "value"
+        ]
         all_settings = self.fm.settings.index(per_page=99999,search=search)['results']
         for settings in all_settings:
             set_tpl = {}
-            for setting in settings:
-                value = settings[setting]
-                if value is None or value=='':
-                    continue
-                if (setting == "name"):
-                    set_tpl['name'] = value
-                if (setting == "value"):
-                    set_tpl['value'] = value
-            # only in settings: allways print out value
-            if set_tpl.get('value') is None:
-                set_tpl['value'] = ""
+            # skip default settings
+            if settings['value'] == settings['default']:
+                continue
+            set_tpl[settings['name']] = self.filter_dump(settings, wanted_keys)
             ret.append(set_tpl)
         return ret
-
 
 
     def dump_partition_table(self, search=None):
@@ -758,7 +761,9 @@ class ForemanDump(ForemanBase):
         ret = []
         all_profiles = self.fm.compute_profiles.index(per_page=99999,search=search)['results']
         for profile in all_profiles:
-            ret.append({ 'name': profile['name'] })
+            tpl = {}
+            tpl[profile['name']] = { 'name': profile['name'] }
+            ret.append(tpl)
         return ret
 
 
@@ -1062,13 +1067,13 @@ class ForemanDump(ForemanBase):
             "content"
         ]
         for org in self.all_org:
-            tpl = {}
             all_keys = self.fm.gpg_keys.index(per_page=99999,search=search,organization_id=org['id'])
             if all_keys['results']:
-                tpl[org['name']] = {}
                 for key in all_keys['results']:
-                    tpl[org['name']][key['name']] = self.filter_dump(key, wanted_keys)
-                ret.append(tpl)
+                    tpl = {}
+                    tpl[key['name']] = self.filter_dump(key, wanted_keys)
+                    tpl[key['name']]['organization'] = org['name']
+                    ret.append(tpl)
 
         return ret
 
@@ -1084,13 +1089,13 @@ class ForemanDump(ForemanBase):
             "sync_date"
         ]
         for org in self.all_org:
-            tpl = {}
             all_sp = self.fm.sync_plans.index(per_page=99999,search=search,organization_id=org['id'])
             if all_sp['results']:
-                tpl[org['name']] = {}
                 for sp in all_sp['results']:
-                    tpl[org['name']][sp['name']] = self.filter_dump(sp, wanted_keys)
-                ret.append(tpl)
+                    tpl = {}
+                    tpl[sp['name']] = self.filter_dump(sp, wanted_keys)
+                    tpl[sp['name']]['organization'] = org['name']
+                    ret.append(tpl)
 
         return ret
 
@@ -1103,18 +1108,18 @@ class ForemanDump(ForemanBase):
             "description"
         ]
         for org in self.all_org:
-            tpl = {}
             all_products = self.fm.products.index(per_page=99999,search=search,organization_id=org['id'])
             if all_products['results']:
-                tpl[org['name']] = {}
                 for product in all_products['results']:
+                    tpl = {}
                     prod_info = self.fm.products.show(product['id'])
-                    tpl[org['name']][product['name']] = self.filter_dump(prod_info, wanted_keys)
+                    tpl[product['name']] = self.filter_dump(prod_info, wanted_keys)
                     if 'gpg_key' in prod_info:
-                        tpl[org['name']][product['name']]['gpg-key'] = prod_info['gpg_key']['name']
+                        tpl[product['name']]['gpg-key'] = prod_info['gpg_key']['name']
                     if prod_info['sync_plan'] != None:
-                        tpl[org['name']][product['name']]['sync-plan'] = prod_info['sync_plan']['name']
-                ret.append(tpl)
+                        tpl[product['name']]['sync-plan'] = prod_info['sync_plan']['name']
+                    tpl[product['name']]['organization'] = org['name']
+                    ret.append(tpl)
 
         return ret
 
@@ -1142,17 +1147,17 @@ class ForemanDump(ForemanBase):
             "ignorable-content"
         ]
         for org in self.all_org:
-            tpl = {}
             all_repos = self.fm.repositories.index(per_page=99999,search=search,organization_id=org['id'])
             if all_repos['results']:
-                tpl[org['name']] = {}
                 for repo in all_repos['results']:
+                    tpl = {}
                     repo_info = self.fm.repositories.show(repo['id'])
-                    tpl[org['name']][repo['name']] = self.filter_dump(repo_info, wanted_keys)
-                    tpl[org['name']][repo['name']]['product'] = repo_info['product']['name']
+                    tpl[repo['name']] = self.filter_dump(repo_info, wanted_keys)
+                    tpl[repo['name']]['product'] = repo_info['product']['name']
                     if repo_info['gpg_key'] != None:
-                        tpl[org['name']][repo['name']]['gpg-key'] = repo_info['gpg_key']['name']
-                ret.append(tpl)
+                        tpl[repo['name']]['gpg-key'] = repo_info['gpg_key']['name']
+                    tpl[repo['name']]['organization'] = org['name']
+                    ret.append(tpl)
 
         return ret
 
@@ -1165,18 +1170,18 @@ class ForemanDump(ForemanBase):
             "description"
         ]
         for org in self.all_org:
-            tpl = {}
             try:
                 all_env = self.fm.lifecycle_environments.index(per_page=99999,search=search,organization_id=org['id'])
             except:
                 continue
             if all_env['results']:
-                tpl[org['name']] = {}
                 for env in all_env['results']:
+                    tpl = {}
                     if env['library'] == True:
                         continue
-                    tpl[org['name']][env['name']] = self.filter_dump(env, wanted_keys)
-            ret.append(tpl)
+                    tpl[env['name']] = self.filter_dump(env, wanted_keys)
+                    tpl[env['name']]['organization'] = org['name']
+                    ret.append(tpl)
 
         return ret
 
@@ -1195,27 +1200,27 @@ class ForemanDump(ForemanBase):
             "repositories"
         ]
         for org in self.all_org:
-            tpl = {}
             all_cv = self.fm.content_views.index(per_page=99999,search='name != "Default Organization View"',organization_id=org['id'])
             if all_cv['results']:
-                tpl[org['name']] = {}
                 for cv in all_cv['results']:
+                    tpl = {}
                     cv_info = self.fm.content_views.show(cv['id'])
-                    tpl[org['name']][cv['name']] = self.filter_dump(cv_info, wanted_keys)
+                    tpl[cv['name']] = self.filter_dump(cv_info, wanted_keys)
+                    tpl[cv['name']]['organization'] = org['name']
                     if cv_info['components']:
                         all_comp = []
                         for comp in cv_info['components']:
                             all_comp.append(comp['content_view']['name'])
-                        tpl[org['name']][cv['name']]['components'] = all_comp
-                    if 'repositories' in tpl[org['name']][cv['name']]:
+                        tpl[cv['name']]['components'] = all_comp
+                    if 'repositories' in tpl[cv['name']]:
                         if cv_info['composite']:
-                            del tpl[org['name']][cv['name']]['repositories']
+                            del tpl[cv['name']]['repositories']
                         else:
-                            for repo in tpl[org['name']][cv['name']]['repositories']:
+                            for repo in tpl[cv['name']]['repositories']:
                                 del repo['id']
                                 del repo['label']
-            if tpl:
-                ret.append(tpl)
+                    if tpl:
+                        ret.append(tpl)
 
         return ret
 
@@ -1229,30 +1234,30 @@ class ForemanDump(ForemanBase):
             "max-hosts"
         ]
         for org in self.all_org:
-            tpl = {}
             all_keys = self.fm.activation_keys.index(per_page=99999,search=search,organization_id=org['id'])
             if all_keys['results']:
-                tpl[org['name']] = {}
                 for key in all_keys['results']:
+                    tpl = {}
                     products = []
                     enabled_repos = []
                     disabled_repos = []
                     key_info = self.fm.activation_keys.show(key['id'])
-                    tpl[org['name']][key['name']] = self.filter_dump(key_info, wanted_keys)
-                    tpl[org['name']][key['name']]['content-view'] = key_info['content_view']['name']
-                    tpl[org['name']][key['name']]['environment'] = key_info['environment']['name']
+                    tpl[key['name']] = self.filter_dump(key_info, wanted_keys)
+                    tpl[key['name']]['organization'] = org['name']
+                    tpl[key['name']]['content-view'] = key_info['content_view']['name']
+                    tpl[key['name']]['environment'] = key_info['environment']['name']
                     for prod in key_info['products']:
                         products.append(prod['name'])
-                    tpl[org['name']][key['name']]['products'] = products
+                    tpl[key['name']]['products'] = products
                     for repo in key_info['content_overrides']:
                         if repo['value'] == '1':
                             enabled_repos.append(repo['content_label'])
                         else:
                             disabled_repos.append(repo['content_label'])
                     if enabled_repos:
-                        tpl[org['name']][key['name']]['enabled-repos'] = enabled_repos
+                        tpl[key['name']]['enabled-repos'] = enabled_repos
                     if disabled_repos:
-                        tpl[org['name']][key['name']]['disabled-repos'] = disabled_repos
-                ret.append(tpl)
+                        tpl[key['name']]['disabled-repos'] = disabled_repos
+                    ret.append(tpl)
 
         return ret

@@ -104,8 +104,6 @@ If Katello plugin is intalled, following objects are also supported:
 - repos
 - sync-plans
 
-Katello objects are sorted by organization.
-
 ::
 
     foreman-yml dump /path/to/config.yml settings > foreman_dump.yml

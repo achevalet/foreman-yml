@@ -76,6 +76,7 @@ List of supported objects:
 - environment
 - global-parameter
 - hosts
+- hosts-enc
 - hostgroup
 - job-template
 - location

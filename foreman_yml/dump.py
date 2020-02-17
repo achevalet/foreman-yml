@@ -58,6 +58,7 @@ class ForemanDump(ForemanBase):
             'environment',
             'global-parameter',
             'hosts',
+            'hosts-enc',
             'hostgroup',
             'job-template',
             'location',
@@ -197,6 +198,19 @@ class ForemanDump(ForemanBase):
                 pass
 
             ret.append(host_tpl)
+        return ret
+
+
+    def dump_hosts_enc(self, search=None):
+        ret = []
+        all_hosts = self.fm.hosts.index(per_page=99999,search=search)['results']
+        for host in all_hosts:
+            host_tpl = {}
+            if not 'name' in host:
+                continue
+            host_tpl[host['name']] = self.fm.hosts.enc(host['id'])
+            ret.append(host_tpl)
+
         return ret
 
 

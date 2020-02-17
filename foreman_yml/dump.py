@@ -44,7 +44,7 @@ class ForemanDump(ForemanBase):
 
 
     # dump functionality
-    def dump(self, object=None, search=None):
+    def dump(self, object=None, search=None, generate_files=False):
         dumpdata = {}
         all_objects = []
         # define supported objects (restrict dump functions name)
@@ -85,6 +85,7 @@ class ForemanDump(ForemanBase):
             'content-views',
             'activation-keys'
         ]
+        generate_files_dir = 'foreman_yml_files'
 
         # check katello status
         try:
@@ -115,9 +116,6 @@ class ForemanDump(ForemanBase):
         # filter empty objects
         dumpdata = self.filter_dump(dumpdata, supported_objects)
 
-        # print the result
-        fmyml = { 'foreman': dumpdata }
-
         def str_presenter(dumper, data):
             try:
                 dlen = len(data.splitlines())
@@ -131,8 +129,21 @@ class ForemanDump(ForemanBase):
         yaml.add_representer(unicode, str_presenter)
         yaml.add_representer(str, str_presenter)
 
-        yml = yaml.dump(fmyml, allow_unicode=True, default_flow_style=False )
-        print( (yml) )
+        if generate_files == False:
+            # print the result to stdout
+            fmyml = { 'foreman': dumpdata }
+            yml = yaml.dump(fmyml, allow_unicode=True, default_flow_style=False )
+            print( (yml) )
+        else:
+            # generate per object yaml files
+            self.ensure_dir(generate_files_dir)
+            for obj in dumpdata:
+                objdir = generate_files_dir + '/' + obj
+                self.ensure_dir(objdir)
+                for elmt in dumpdata[obj]:
+                   yml_file = objdir + '/' + elmt.keys()[0].replace('/', '__') + '.yml'
+                   yml_data = yaml.dump(elmt, allow_unicode=True, default_flow_style=False )
+                   self.write_yml_file(yml_file, yml_data)
 
 
     def dump_hosts(self, search=None):

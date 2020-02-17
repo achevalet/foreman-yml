@@ -1,3 +1,4 @@
+import os
 import sys
 import logging
 import log
@@ -112,3 +113,12 @@ class ForemanBase:
         for line in data.splitlines():
             out.append(line.rstrip())
         return '\n'.join(out)
+
+    def ensure_dir(self, directory):
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+
+    def write_yml_file(self, file, data):
+        f = open(file, 'w')
+        f.write(data)
+        f.close

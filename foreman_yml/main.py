@@ -10,8 +10,8 @@ import os
 import log
 
 
-def fm_dump(fm, object=None, search=None):
-    fm.dump(object, search)
+def fm_dump(fm, object=None, search=None, generate_files=False):
+    fm.dump(object, search, generate_files)
 
 
 def fm_cleanup(fm):
@@ -118,7 +118,10 @@ def main():
         fm.connect()
         fm_import(fm)
 
-    if (function == "dump"):
+    if (function == "dump" or function == "dump-files" ):
+        generate_files = False
+        if (function == "dump-files"):
+            generate_files = True
         fm = ForemanDump(config)
         fm.connect()
         try:
@@ -130,7 +133,7 @@ def main():
         except IndexError:
             search = None
         
-        fm_dump(fm, object, search)
+        fm_dump(fm, object, search, generate_files)
 
     if (function == "cleanup"):
         fm = ForemanCleanup(config)

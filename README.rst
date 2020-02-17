@@ -34,7 +34,7 @@ Usage
 
 ::
 
-    foreman-yml [import|dump|cleanup] /path/to/config.yaml
+    foreman-yml [import|dump|dump-files|cleanup] /path/to/config.yaml
 
 Configuration
 ~~~~~~~~~~~~~
@@ -42,8 +42,8 @@ Configuration
 Root node of YAML is always ``foreman``. You can find an configuration
 example under ``config/example.yml``
 
-Dump current configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+Dump current configuration to stdout
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 foreman-yml supports dumping the whole configuration of a remote foreman
 instance to stdout. Use ``foreman-yml dump`` for this feauture.
@@ -128,6 +128,21 @@ Search query can optionally be passed as argument#4 to filter on specific object
 .. note::
    Only smart class parameters with override=true are dumped.
    Hidden parameters are dumped in clear text.
+
+Dump current configuration to yaml files
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Same as the dump feature except that it generates per object yaml files instead of dumping to stdout.
+
+::
+
+    foreman-yml dump-files /path/to/config.yml
+
+It creates a directory ``foreman_yml_files`` in the current working directory with the following structure:
+
+::
+
+    foreman_yml_files/<object_type>/<object_name>.yml
 
 Import settings into foreman
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

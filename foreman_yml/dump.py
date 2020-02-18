@@ -301,12 +301,10 @@ class ForemanDump(ForemanBase):
         all_os = self.fm.operatingsystems.index(per_page=99999,search=search)['results']
         for os in all_os:
             os_tpl = {}
-            if 'description' in os and os['description'] != None:
+            if os['description']:
                 name = os['description']
-            elif 'name' in os:
-                name = os['name']
             else:
-                continue
+                name = "%s %s" %(os['name'], os['major'])
             os_tpl[name] = {}
             for setting in os:
                 value = os[setting]

@@ -110,6 +110,8 @@ class ForemanDump(ForemanBase):
 
         # dump objects
         for object in all_objects:
+            if generate_files:
+                log.log(log.LOG_INFO, "Dumping " + object)
             dump_func = getattr(self, 'dump_%s' %object.replace('-', '_'))
             dumpdata[object] = dump_func(search)
 
@@ -136,9 +138,11 @@ class ForemanDump(ForemanBase):
             print( (yml) )
         else:
             # generate per object yaml files
+            log.log(log.LOG_INFO, "Writing yaml files in " + generate_files_dir)
             self.ensure_dir(generate_files_dir)
             for obj in dumpdata:
                 objdir = generate_files_dir + '/' + obj
+                log.log(log.LOG_INFO, "Creating " + objdir)
                 self.ensure_dir(objdir)
                 for elmt in dumpdata[obj]:
                    yml_file = objdir + '/' + elmt.keys()[0].replace('/', '__') + '.yml'

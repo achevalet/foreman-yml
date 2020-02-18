@@ -547,7 +547,7 @@ class ForemanDump(ForemanBase):
             except KeyError:
                 pass
             try:
-                pt_tpl[name]['layout'] = str(ptobj['layout'])
+                pt_tpl[name]['layout'] = self.rstrip_multilines(ptobj['layout'])
             except KeyError:
                 pass
             ret.append(pt_tpl)

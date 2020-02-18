@@ -836,7 +836,7 @@ class ForemanDump(ForemanBase):
         all_bm = self.fm.bookmarks.index(per_page=99999,search=search)['results']
         for bm in all_bm:
             bm_tpl = {}
-            bm_tpl[bm['name']] = self.filter_dump(bm, wanted_keys)
+            bm_tpl[bm['controller']+'_'+bm['name']] = self.filter_dump(bm, wanted_keys)
             ret.append(bm_tpl)
 
         return ret

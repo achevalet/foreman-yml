@@ -1060,16 +1060,14 @@ class ForemanDump(ForemanBase):
 
     def dump_gpg_keys(self, search=None):
         ret = []
-        wanted_keys = [
-            "name",
-            "content"
-        ]
         for org in self.all_org:
             all_keys = self.fm.gpg_keys.index(per_page=99999,search=search,organization_id=org['id'])
             if all_keys['results']:
                 for key in all_keys['results']:
                     tpl = {}
-                    tpl[key['name']] = self.filter_dump(key, wanted_keys)
+                    tpl[key['name']] = {}
+                    tpl[key['name']]['name'] = key['name']
+                    tpl[key['name']]['content'] = key['content'].replace('\r\n', '\n')
                     tpl[key['name']]['organization'] = org['name']
                     ret.append(tpl)
 

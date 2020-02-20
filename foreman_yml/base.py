@@ -27,7 +27,7 @@ class ForemanBase:
         try:
             urllib3.disable_warnings()
             logging.disable(logging.WARNING)
-            self.fm = Foreman(self.config['auth']['url'], (self.config['auth']['user'], self.config['auth']['pass']), api_version=2, use_cache=False, strict_cache=False)
+            self.fm = Foreman(self.config['auth']['url'], (self.config['auth']['user'], self.config['auth']['pass']), api_version=2, use_cache=False, strict_cache=False, timeout=900)
             # this is nescesary for detecting faulty credentials in yaml
             self.fm.architectures.index()
             logging.disable(self.loglevel-1)

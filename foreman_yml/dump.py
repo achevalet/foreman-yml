@@ -273,6 +273,7 @@ class ForemanDump(ForemanBase):
                     grp_tpl[name]['puppetclasses'] = []
                     for pclass in hobj['puppetclasses']:
                         grp_tpl[name]['puppetclasses'].append(pclass['name'])
+                    grp_tpl[name]['puppetclasses'].sort()
 
             except:
                 pass
@@ -334,21 +335,25 @@ class ForemanDump(ForemanBase):
                 os_tpl[name]['media'] = []
                 for media in osobj['media']:
                     os_tpl[name]['media'].append(media['name'])
+                os_tpl[name]['media'].sort()
             # provisioning templates
             if (len(osobj['os_default_templates'])>0):
                 os_tpl[name]['provisioning-template'] = []
                 for pt in osobj['os_default_templates']:
                     os_tpl[name]['provisioning-template'].append(pt['provisioning_template_name'])
+                os_tpl[name]['provisioning-template'].sort()
             # architectures
             if (len(osobj['architectures'])>0):
                 os_tpl[name]['architectures'] = []
                 for pt in osobj['architectures']:
                     os_tpl[name]['architectures'].append(pt['name'])
+                os_tpl[name]['architectures'].sort()
             # partition tables
             if (len(osobj['ptables'])>0):
                 os_tpl[name]['partition-table'] = []
                 for pt in osobj['ptables']:
                     os_tpl[name]['partition-table'].append(pt['name'])
+                os_tpl[name]['partition-table'].sort()
             ret.append(os_tpl)
         return ret
 
@@ -667,6 +672,7 @@ class ForemanDump(ForemanBase):
                 for user in uobj:
                     add_u = { "name":user['login'] }
                     gobj[name]['users'].append(add_u)
+                gobj[name]['users'].sort()
         return ret
 
 
@@ -680,6 +686,7 @@ class ForemanDump(ForemanBase):
             fperms = []
             for perm in filter['permissions']:
                 fperms.append(perm['name'])
+            fperms.sort()
             all_filters_index[filter['id']] = fperms
             if 'search' in filter:
                 if filter['search'] is not None and filter['search'] != '':
@@ -706,6 +713,7 @@ class ForemanDump(ForemanBase):
                     if filter['id'] in all_filters_search_index:
                       current_filter['search'] = all_filters_search_index[filter['id']]
                     role_tpl[name]['permissions'].append(current_filter)
+            role_tpl[name]['permissions'].sort()
 
             ret.append(role_tpl)
 
@@ -754,6 +762,7 @@ class ForemanDump(ForemanBase):
             for attr in robj['compute_attributes']:
                 res_attr_tpl = self.filter_dump(attr, wanted_attr_keys)
                 res_tpl[name]['compute-attributes'].append(res_attr_tpl)
+            res_tpl[name]['compute-attributes'].sort()
             ret.append(res_tpl)
 
         return ret
@@ -885,6 +894,7 @@ class ForemanDump(ForemanBase):
                 for ov in pobj['override_values']:
                     ov_tpl = self.filter_dump(ov, wanted_override_keys)
                     param_tpl[pname]['override-values'].append(ov_tpl)
+                param_tpl[pname]['override-values'].sort()
             if pobj['omit'] == True and 'default-value' in param_tpl[pname]:
                 del param_tpl[pname]['default-value']
             ret.append(param_tpl)
@@ -913,59 +923,41 @@ class ForemanDump(ForemanBase):
             "subnets",
             "users"
         ]
+        all_types_mapping = {
+            'User': 'users',
+            'SmartProxy': 'smart-proxies',
+            'Subnet': 'subnets',
+            'ComputeResource': 'compute-resources',
+            'Medium': 'media',
+            'Ptable': 'ptables',
+            'ProvisioningTemplate': 'provisioning-templates',
+            'Domain': 'domains',
+            'Realm': 'realms',
+            'Environment': 'environments',
+            'Hostgroup': 'hostgroups'
+        }
         for org in self.all_org:
             tpl = {}
             tpl[org['name']] = {}
             org_info = self.fm.organizations.show(org['id'])
             
             tpl[org['name']]['select-all-types'] = org_info['select_all_types']
-            if not 'User' in org_info['select_all_types']:
-                tpl[org['name']]['users'] = []
-                for obj in org_info['users']:
-                    tpl[org['name']]['users'].append(obj['login'])
-            if not 'SmartProxy' in org_info['select_all_types']:
-                tpl[org['name']]['smart-proxies'] = []
-                for obj in org_info['smart_proxies']:
-                    tpl[org['name']]['smart-proxies'].append(obj['name'])
-            if not 'Subnet' in org_info['select_all_types']:
-                tpl[org['name']]['subnets'] = []
-                for obj in org_info['subnets']:
-                    tpl[org['name']]['subnets'].append(obj['name'])
-            if not 'ComputeResource' in org_info['select_all_types']:
-                tpl[org['name']]['compute-resources'] = []
-                for obj in org_info['compute_resources']:
-                    tpl[org['name']]['compute-resources'].append(obj['name'])
-            if not 'Medium' in org_info['select_all_types']:
-                tpl[org['name']]['media'] = []
-                for obj in org_info['media']:
-                    tpl[org['name']]['media'].append(obj['name'])
-            if not 'Ptable' in org_info['select_all_types']:
-                tpl[org['name']]['ptables'] = []
-                for obj in org_info['ptables']:
-                    tpl[org['name']]['ptables'].append(obj['name'])
-            if not 'ProvisioningTemplate' in org_info['select_all_types']:
-                tpl[org['name']]['provisioning-templates'] = []
-                for obj in org_info['provisioning_templates']:
-                    tpl[org['name']]['provisioning-templates'].append(obj['name'])
-            if not 'Domain' in org_info['select_all_types']:
-                tpl[org['name']]['domains'] = []
-                for obj in org_info['domains']:
-                    tpl[org['name']]['domains'].append(obj['name'])
-            if not 'Realm' in org_info['select_all_types']:
-                tpl[org['name']]['realms'] = []
-                for obj in org_info['realms']:
-                    tpl[org['name']]['realms'].append(obj['name'])
-            if not 'Environment' in org_info['select_all_types']:
-                tpl[org['name']]['environments'] = []
-                for obj in org_info['environments']:
-                    tpl[org['name']]['environments'].append(obj['name'])
-            if not 'Hostgroup' in org_info['select_all_types']:
-                tpl[org['name']]['hostgroups'] = []
-                for obj in org_info['hostgroups']:
-                    tpl[org['name']]['hostgroups'].append(obj['name'])
+            tpl[org['name']]['select-all-types'].sort()
+            for type in all_types_mapping:
+                key_to_use = 'name'
+                if type == 'User':
+                    key_to_use = 'login'
+                if not type in org_info['select_all_types']:
+                    tpl[org['name']][all_types_mapping[type]] = []
+                    for obj in org_info[all_types_mapping[type].replace('-', '_')]:
+                        tpl[org['name']][all_types_mapping[type]].append(obj[key_to_use])
+                    tpl[org['name']][all_types_mapping[type]].sort()
+
             tpl[org['name']]['locations'] = []
             for obj in org_info['locations']:
                 tpl[org['name']]['locations'].append(obj['name'])
+            tpl[org['name']]['locations'].sort()
+
             tpl[org['name']]['parameters'] = {}
             for obj in org_info['parameters']:
                 tpl[org['name']]['parameters'][obj['name']] = obj['value']
@@ -997,6 +989,19 @@ class ForemanDump(ForemanBase):
             "subnets",
             "users"
         ]
+        all_types_mapping = {
+            'User': 'users',
+            'SmartProxy': 'smart-proxies',
+            'Subnet': 'subnets',
+            'ComputeResource': 'compute-resources',
+            'Medium': 'media',
+            'Ptable': 'ptables',
+            'ProvisioningTemplate': 'provisioning-templates',
+            'Domain': 'domains',
+            'Realm': 'realms',
+            'Environment': 'environments',
+            'Hostgroup': 'hostgroups'
+        }
         all_loc = self.fm.locations.index(per_page=99999,search=search)['results']
         for loc in all_loc:
             tpl = {}
@@ -1004,53 +1009,22 @@ class ForemanDump(ForemanBase):
             loc_info = self.fm.locations.show(loc['id'])
             
             tpl[loc['name']]['select-all-types'] = loc_info['select_all_types']
-            if not 'User' in loc_info['select_all_types']:
-                tpl[loc['name']]['users'] = []
-                for obj in loc_info['users']:
-                    tpl[loc['name']]['users'].append(obj['login'])
-            if not 'SmartProxy' in loc_info['select_all_types']:
-                tpl[loc['name']]['smart-proxies'] = []
-                for obj in loc_info['smart_proxies']:
-                    tpl[loc['name']]['smart-proxies'].append(obj['name'])
-            if not 'Subnet' in loc_info['select_all_types']:
-                tpl[loc['name']]['subnets'] = []
-                for obj in loc_info['subnets']:
-                    tpl[loc['name']]['subnets'].append(obj['name'])
-            if not 'ComputeResource' in loc_info['select_all_types']:
-                tpl[loc['name']]['compute-resources'] = []
-                for obj in loc_info['compute_resources']:
-                    tpl[loc['name']]['compute-resources'].append(obj['name'])
-            if not 'Medium' in loc_info['select_all_types']:
-                tpl[loc['name']]['media'] = []
-                for obj in loc_info['media']:
-                    tpl[loc['name']]['media'].append(obj['name'])
-            if not 'Ptable' in loc_info['select_all_types']:
-                tpl[loc['name']]['ptables'] = []
-                for obj in loc_info['ptables']:
-                    tpl[loc['name']]['ptables'].append(obj['name'])
-            if not 'ProvisioningTemplate' in loc_info['select_all_types']:
-                tpl[loc['name']]['provisioning-templates'] = []
-                for obj in loc_info['provisioning_templates']:
-                    tpl[loc['name']]['provisioning-templates'].append(obj['name'])
-            if not 'Domain' in loc_info['select_all_types']:
-                tpl[loc['name']]['domains'] = []
-                for obj in loc_info['domains']:
-                    tpl[loc['name']]['domains'].append(obj['name'])
-            if not 'Realm' in loc_info['select_all_types']:
-                tpl[loc['name']]['realms'] = []
-                for obj in loc_info['realms']:
-                    tpl[loc['name']]['realms'].append(obj['name'])
-            if not 'Environment' in loc_info['select_all_types']:
-                tpl[loc['name']]['environments'] = []
-                for obj in loc_info['environments']:
-                    tpl[loc['name']]['environments'].append(obj['name'])
-            if not 'Hostgroup' in loc_info['select_all_types']:
-                tpl[loc['name']]['hostgroups'] = []
-                for obj in loc_info['hostgroups']:
-                    tpl[loc['name']]['hostgroups'].append(obj['name'])
+            tpl[loc['name']]['select-all-types'].sort()
+            for type in all_types_mapping:
+                key_to_use = 'name'
+                if type == 'User':
+                    key_to_use = 'login'
+                if not type in loc_info['select_all_types']:
+                    tpl[loc['name']][all_types_mapping[type]] = []
+                    for obj in loc_info[all_types_mapping[type].replace('-', '_')]:
+                        tpl[loc['name']][all_types_mapping[type]].append(obj[key_to_use])
+                    tpl[loc['name']][all_types_mapping[type]].sort()
+
             tpl[loc['name']]['organizations'] = []
             for obj in loc_info['organizations']:
                 tpl[loc['name']]['organizations'].append(obj['name'])
+            tpl[loc['name']]['organizations'].sort()
+
             tpl[loc['name']]['parameters'] = {}
             for obj in loc_info['parameters']:
                 if obj != {}:
@@ -1211,6 +1185,7 @@ class ForemanDump(ForemanBase):
                         all_comp = []
                         for comp in cv_info['components']:
                             all_comp.append(comp['content_view']['name'])
+                        all_comp.sort()
                         tpl[cv['name']]['components'] = all_comp
                     if 'repositories' in tpl[cv['name']]:
                         if cv_info['composite']:
@@ -1248,6 +1223,7 @@ class ForemanDump(ForemanBase):
                     tpl[key['name']]['environment'] = key_info['environment']['name']
                     for prod in key_info['products']:
                         products.append(prod['name'])
+                    products.sort()
                     tpl[key['name']]['products'] = products
                     for repo in key_info['content_overrides']:
                         if repo['value'] == '1':
@@ -1255,8 +1231,10 @@ class ForemanDump(ForemanBase):
                         else:
                             disabled_repos.append(repo['content_label'])
                     if enabled_repos:
+                        enabled_repos.sort()
                         tpl[key['name']]['enabled-repos'] = enabled_repos
                     if disabled_repos:
+                        disabled_repos.sort()
                         tpl[key['name']]['disabled-repos'] = disabled_repos
                     ret.append(tpl)
 

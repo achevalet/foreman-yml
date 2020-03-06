@@ -758,11 +758,16 @@ class ForemanDump(ForemanBase):
             except:
                 continue
             res_tpl[name] = self.filter_dump(robj, wanted_keys)
-            res_tpl[name]['compute-attributes'] = []
-            for attr in robj['compute_attributes']:
-                res_attr_tpl = self.filter_dump(attr, wanted_attr_keys)
-                res_tpl[name]['compute-attributes'].append(res_attr_tpl)
-            res_tpl[name]['compute-attributes'].sort()
+            if robj['compute_attributes']:
+                res_tpl[name]['compute-attributes'] = []
+                for attr in robj['compute_attributes']:
+                    res_attr_tpl = {}
+                    pname = attr['compute_profile_name']
+                    res_attr_tpl[pname] = self.filter_dump(attr, wanted_attr_keys)
+                    if 'resource-pool-id' in res_attr_tpl[pname]['attributes']:
+                        del res_attr_tpl[pname]['attributes']['resource-pool-id']
+                    res_tpl[name]['compute-attributes'].append(res_attr_tpl)
+                res_tpl[name]['compute-attributes'].sort()
             ret.append(res_tpl)
 
         return ret

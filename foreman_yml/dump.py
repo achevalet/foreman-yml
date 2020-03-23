@@ -764,7 +764,7 @@ class ForemanDump(ForemanBase):
                     res_attr_tpl = {}
                     pname = attr['compute_profile_name']
                     res_attr_tpl[pname] = self.filter_dump(attr, wanted_attr_keys)
-                    if 'resource-pool-id' in res_attr_tpl[pname]['attributes']:
+                    if 'attributes' in res_attr_tpl[pname] and 'resource-pool-id' in res_attr_tpl[pname]['attributes']:
                         del res_attr_tpl[pname]['attributes']['resource-pool-id']
                     res_tpl[name]['compute-attributes'].append(res_attr_tpl)
                 res_tpl[name]['compute-attributes'].sort()

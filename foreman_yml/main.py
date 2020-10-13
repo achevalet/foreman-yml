@@ -1,153 +1,132 @@
 #!/usr/bin/python
 # -*- coding: utf8 -*-
 
+import argparse
+import getpass
 import yaml
 import sys
-from importer import ForemanImport
-from dump import ForemanDump
-from cleanup import ForemanCleanup
-import os
 import log
-
-
-def fm_dump(fm, object=None, search=None, generate_files=False):
-    fm.dump(object, search, generate_files)
-
-
-def fm_cleanup(fm):
-    # cleanup architecture
-    fm.process_cleanup_arch()
-
-    # cleanup medium
-    fm.process_cleanup_medium()
-
-    # cleanup partition table
-    fm.process_cleanup_ptable()
-
-    # cleanup provisioning template
-    fm.process_cleanup_provisioningtpl()
-
-
-def fm_import(fm):
-    # setting
-    fm.process_config_settings()
-
-    # architecture
-    fm.process_config_arch()
-
-    # smart proxy
-    fm.process_config_smartproxy()
-
-    # domain
-    fm.process_config_domain()
-
-    # subnet
-    fm.process_config_subnet()
-
-    # environment
-    fm.process_config_enviroment()
-
-    # model
-    fm.process_config_model()
-
-    # medium
-    fm.process_config_medium()
-
-    # partition table
-    fm.process_config_ptable()
-
-    # operating system
-    fm.process_config_os()
-
-    # provisioning template
-    fm.process_config_provisioningtpl()
-
-    # hostgroup
-    fm.process_config_hostgroup()
-
-    # Link items to operating system
-    fm.process_config_os_link()
-
-    # Link template-combination-attribute
-    fm.process_template_combination_attribute()
-
-    # host
-    fm.process_config_host()
-
-    # enterprise edition only: ldap
-    fm.process_auth_sources_ldap()
-
-    # roles
-    fm.process_roles()
-
-    # users
-    fm.process_config_user()
-
-    # user groups
-    fm.process_usergroups()
-
+from dump import ForemanDump
+from convert import ForemanConvert
 
 def main():
+    # Get args from cli
+    parser = argparse.ArgumentParser(
+        description = 'Dump Foreman objects into YAML format')
 
-    try:
-        function = sys.argv[1]
-    except:
-        log.log(log.LOG_ERROR, "No action defined (Valid: dump, import, cleanup)")
-        sys.exit(1)
+    parser.add_argument('-a', '--action',
+        required  = True,
+        action    = 'store',
+        choices   = ['dump', 'dump-files', 'convert'],)
 
-    if os.path.isfile(sys.argv[1]):
-        config_file = sys.argv[1]
-        function = "legacy"
-    else:
+    parser.add_argument('-c', '--config_file',
+        required  = False,
+        action    = 'store',
+        help      = 'Path to YAML config file',
+        default   = 'config/config.yml')
+
+    parser.add_argument('-f', '--foreman_url',
+        required  = False,
+        action    = 'store',
+        help      = 'Foreman server URL')
+
+    parser.add_argument('-u', '--foreman_user',
+        required  = False,
+        action    = 'store',
+        help      = 'Foreman username')
+
+    parser.add_argument('-p', '--foreman_password',
+        required  = False,
+        action    = 'store',
+        help      = 'Foreman password')
+
+    parser.add_argument('-l', '--log_level',
+        required  = False,
+        action    = 'store',
+        choices   = ['debug', 'info', 'warn', 'error'])
+
+    parser.add_argument('-t', '--type',
+        required  = False,
+        action    = 'store',
+        help      = 'Filter by object type')
+
+    parser.add_argument('-s', '--search',
+        required  = False,
+        action    = 'store',
+        help      = 'Filter by search query, Only valid for: dump, dump-files')
+
+    parser.add_argument('-i', '--input_dir',
+        required  = False,
+        action    = 'store',
+        help      = 'Input folder. Only valid for: convert')
+
+    parser.add_argument('-o', '--output_dir',
+        required  = False,
+        action    = 'store',
+        help      = 'Output folder. Only valid for: dump-files, convert')
+
+    args = parser.parse_args()
+    action = args.action
+
+    # load config file
+    if args.config_file:
         try:
-            config_file = sys.argv[2]
-        except IndexError:
-            log.log(log.LOG_ERROR, "No YAML provided")
+            config_file = open(args.config_file, 'r')
+            config = yaml.load(config_file, Loader=yaml.FullLoader)
+            config_file.close()
+        except:
+            log.log(log.LOG_ERROR, "Failed to load/parse config file")
             sys.exit(1)
 
-    try:
-        config_file = open(config_file, 'r')
-        config = yaml.load(config_file, Loader=yaml.FullLoader)
-        config_file.close()
-    except:
-        log.log(log.LOG_ERROR, "Failed to load/parse config")
+    # override config with cli args
+    if args.log_level:
+        config['log_level'] = args.log_level
+    elif not 'log_level' in config:
+        # set default level
+        config['log_level'] = 'INFO'
+    if args.foreman_url:
+        config['foreman_url'] = args.foreman_url
+    if args.foreman_user:
+        config['foreman_user'] = args.foreman_user
+    if args.foreman_password:
+        config['foreman_password'] = args.foreman_password
+
+    # check required parameters for dump
+    if action == 'dump' or action == 'dump-files':
+        if not 'foreman_url' in config:
+            log.log(log.LOG_ERROR, "Missing parameter foreman_url")
+            sys.exit(1)
+        if not 'foreman_user' in config:
+            log.log(log.LOG_ERROR, "Missing parameter foreman_user")
+            sys.exit(1)
+        if not 'foreman_password' in config:
+            config['foreman_password'] = getpass.getpass(prompt='Enter password for %s: ' %config['foreman_user'])
+
+    # check required parameters for convert
+    if action == 'convert' and not args.input_dir:
+        log.log(log.LOG_ERROR, "Missing parameter input_dir")
         sys.exit(1)
 
-    if (function == "import"):
-        fm = ForemanImport(config)
-        fm.connect()
-        fm_import(fm)
-
-    if (function == "dump" or function == "dump-files" ):
-        generate_files = False
-        if (function == "dump-files"):
-            generate_files = True
+    # check output folder
+    if (action == 'convert' or action == 'dump-files') and not args.output_dir:
+        log.log(log.LOG_ERROR, "Missing parameter output_dir")
+        sys.exit(1)
+ 
+    # run dump
+    if (action == "dump" or action == "dump-files" ):
         fm = ForemanDump(config)
         fm.connect()
-        try:
-            object = sys.argv[3]
-        except IndexError:
-            object = None
-        try:
-            search = sys.argv[4]
-        except IndexError:
-            search = None
-        
-        fm_dump(fm, object, search, generate_files)
 
-    if (function == "cleanup"):
-        fm = ForemanCleanup(config)
-        fm.connect()
-        fm_cleanup(fm)
+        generate_files = False
+        if (action == "dump-files"):
+            generate_files = True
 
-    if (function == "legacy"):
-        fm_cls = ForemanCleanup(config)
-        fm_cls.connect()
-        fm_cleanup(fm_cls)
-        fm_imp = ForemanImport(config)
-        fm_imp.connect()
-        fm_import(fm_imp)
+        fm.dump(args.type, args.search, generate_files, args.output_dir)
 
+    # run convert
+    elif (action == "convert" ):
+        fm = ForemanConvert(config)
+        fm.convert(args.input_dir, args.output_dir, args.type)
 
 if __name__ == '__main__':
     main()

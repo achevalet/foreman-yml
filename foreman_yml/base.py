@@ -3,57 +3,81 @@ import sys
 import logging
 import log
 import urllib3
+import yaml
 from foreman.client import Foreman
-from validator import Validator
 
+FOREMAN_OBJECTS = [
+    'architecture',
+    'auth-source-ldap',
+    'bookmark',
+    'compute-resource',
+    'compute-profile',
+    'domain',
+    'environment',
+    'global-parameter',
+    'hosts',
+    'hosts-enc',
+    'hostgroup',
+    'job-template',
+    'location',
+    'model',
+    'media',
+    'organization',
+    'os',
+    'partition-table',
+    'provisioning-template',
+    'roles',
+    'settings',
+    'smart-class-parameter',
+    'smart-proxy',
+    'subnet',
+    'users',
+    'usergroups'
+]
+KATELLO_OBJECTS = [
+    'activation-keys',
+    'content-views',
+    'gpg-keys',
+    'lifecycle-environments',
+    'products',
+    'repos',
+    'sync-plans'
+]
 
 class ForemanBase:
 
-    def __init__(self, config, loglevel=logging.INFO):
-        logging.basicConfig(level=loglevel)
-        log.LOGLEVEL = loglevel
-        self.config = config['foreman']
-        self.loglevel = loglevel
-        self.validator = Validator()
+    def __init__(self, config):
+        self.config = config
+        self.loglevel = getattr(logging, config['log_level'].upper(), None)
+        logging.basicConfig(level=self.loglevel)
+        log.LOGLEVEL = self.loglevel
 
-    def get_config_section(self, section):
-        try:
-            cfg = self.config[section]
-        except:
-            cfg = []
-        return cfg
-
-    def connect(self):
+    def connect(self): 
         try:
             urllib3.disable_warnings()
             logging.disable(logging.WARNING)
-            self.fm = Foreman(self.config['auth']['url'], (self.config['auth']['user'], self.config['auth']['pass']), api_version=2, use_cache=False, strict_cache=False, timeout=900)
-            # this is nescesary for detecting faulty credentials in yaml
-            self.fm.architectures.index()
+            self.fm = Foreman(self.config['foreman_url'], (self.config['foreman_user'], self.config['foreman_password']),
+                api_version=2, use_cache=False, strict_cache=False, timeout=900)
+            # check api access
+            self.fm.status.home_status()
             logging.disable(self.loglevel-1)
         except:
             log.log(log.LOG_ERROR, "Cannot connect to Foreman-API")
             sys.exit(1)
 
-    def get_api_error_msg(self, e):
-        dr = e.res.json()
+    def get_all_objects(self):
+        objects = FOREMAN_OBJECTS + KATELLO_OBJECTS
+        objects.sort()
+        return objects
+
+    def get_supported_objects(self):
         try:
-            msg = dr['error']['message']
-        except KeyError:
-            msg = dr['error']['full_messages'][0]
-
-        return msg
-
-    def get_host(self, host_id):
-        host = self.fm.hosts.show(id=host_id)
-        return host
-
-    def remove_host(self, host_id):
-        try:
-            self.fm.hosts.destroy(id=host_id)
-            return True
+            # check katello status
+            katello_status = self.fm.status.ping_server_status()
+            return self.get_all_objects()
         except:
-            return False
+            FOREMAN_OBJECTS.sort()
+            return FOREMAN_OBJECTS
 
     def dict_underscore(self, d):
         new = {}
@@ -82,32 +106,6 @@ class ForemanBase:
                 ret[setting] = value
         return ret
 
-    def get_audit_ip(self, host_id):
-        # this is hacky right now since the audits-api has an bug and does not return any audits whe passing host_id
-        # host_audits = self.fm.hosts.audits_index(auditable_id=80)
-        #ha = self.fm.hosts.index(auditable_id=81)
-        host_audits = []
-        host_ip = False
-        all_audits = self.fm.audits.index(per_page=99999)['results']
-
-        # get audits of specified host
-        for audit in all_audits:
-            if (audit['auditable_type'] == 'Host::Base') and (audit['auditable_id'] == host_id):
-                host_audits.append(audit)
-
-        # search for audit type audited_changes['build']
-        for audit in host_audits:
-            if 'installed_at' in audit['audited_changes']:
-                try:
-                    ll = len(audit['audited_changes']['installed_at'])
-                    host_ip = audit['remote_address']
-                    return host_ip
-                except:
-                    pass
-
-        # nothing found, return False
-        return False
-
     def rstrip_multilines(self, data):
         out = []
         for line in data.splitlines():
@@ -122,3 +120,12 @@ class ForemanBase:
         f = open(file, 'w')
         f.write(data)
         f.close
+
+    def read_yml_file(self, file):
+        data = {}
+        with open(file, 'r') as input_file:
+            try:
+                data = yaml.safe_load(input_file)
+            except yaml.YAMLError as exception:
+                raise exception
+        return data

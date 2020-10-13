@@ -1,0 +1,5 @@
+---
+foreman_url: https://foreman.lab.local
+foreman_user: username
+foreman_password: password
+log_level: INFO
